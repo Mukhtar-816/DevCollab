@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
 
-const hashPassword = async (pwd, salt=10) => {
+const hashPassword = async (pwd, salt = 10) => {
     const sa = await bcrypt.genSalt(salt);
     return await bcrypt.hash(pwd, salt);
 };
@@ -18,21 +18,44 @@ const generateOtp = () => {
 };
 
 const generateTokens = (payload) => {
-    const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {expiresIn : process.env.ACCESS_TOKEN_EXPIRES_IN});
-    const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {expiresIn : process.env.REFRESH_TOKEN_EXPIRES_IN});
-    return {accessToken, refreshToken};
+    const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN });
+    const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN });
+    return { accessToken, refreshToken };
 };
 
 
 const verifyToken = (token, type = "access") => {
-    return jwt.verify(token, type = "access" ? process.env.ACCESS_TOKEN_SECRET : process.env.REFRESH_TOKEN_SECRET);
+    try {
+        let decoded;
+        if (type == "refresh") {
+            decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+        }
+        else {
+            decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        }
+        return {
+            success: true,
+            decoded
+        };
+    } catch (error) {
+        return { success: false, error };
+    }
 };
 
+const generateRandomId = () => {
+    return crypto.randomUUID();
+};
+
+const generateHash = (key) => {
+    return crypto.createHash('sha256').update(key).digest('hex');
+};
 
 module.exports = {
     hashPassword,
     comparePassword,
     generateOtp,
     generateTokens,
-    verifyToken
+    verifyToken,
+    generateRandomId,
+    generateHash
 };

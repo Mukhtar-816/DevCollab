@@ -19,7 +19,7 @@ class CustomError extends Error {
         }
 
         this.name = "CustomError";
-        Error.captureStackTrace(this, this.constructor);
+        // Error.captureStackTrace(this, this.constructor);
     }
 }
 

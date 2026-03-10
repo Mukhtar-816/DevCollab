@@ -9,7 +9,7 @@ class userDal {
         return user;
     };
 
-    async fincUserById (id) {
+    async findUserById (id) {
         const user = await User.findById(id).select("-passwordHash");
 
         return user;

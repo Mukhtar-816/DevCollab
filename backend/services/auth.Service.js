@@ -4,6 +4,7 @@ const CustomError = require("../utils/CustomError");
 const reusable = require("../utils/reusable.js");
 const sessionService = require("./session.Service.js");
 const emailService = require("./email.Service.js");
+const profileService = require("./profile.Service.js");
 
 class AuthService {
     constructor() { }
@@ -101,7 +102,8 @@ class AuthService {
             throw new CustomError({ message: "Invalid OTP", status: 400 });
         }
 
-        const user = await userDal.createUser(userExist);
+        const {passwordHash, ...user} = (await userDal.createUser(userExist)).toObject();
+        await profileService.createUserProfile(user);
 
         const { accessToken, refreshToken } = reusable.generateTokens({ _id: user._id });
         await sessionService.createSession(user._id, refreshToken);

@@ -1,5 +1,19 @@
-./backend/.env
+# Dependencies
+**/node_modules/
 
-./backend/node_modules
+# Environment Variables (SENSITIVE)
+**/.env
+**/.env.local
 
-./app/node_modules
+# Build outputs
+**/dist/
+**/build/
+
+# Logs
+backend/*.log
+frontend/*.log
+npm-debug.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db

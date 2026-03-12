@@ -94,8 +94,8 @@ const DashboardPage = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${project.status === "Active" ? "bg-green-500/10 text-green-500" :
-                                                        project.status === "Staging" ? "bg-blue-500/10 text-blue-500" :
-                                                            "bg-zinc-500/10 text-zinc-500"
+                                                    project.status === "Staging" ? "bg-blue-500/10 text-blue-500" :
+                                                        "bg-zinc-500/10 text-zinc-500"
                                                     }`}>
                                                     {project.status}
                                                 </span>

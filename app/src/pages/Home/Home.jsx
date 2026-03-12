@@ -96,8 +96,8 @@ const HomePage = () => {
                                 <div className="flex items-center gap-3">
                                     <div className="h-8 w-8 rounded-full bg-green-500" />
                                     <div className="space-y-1">
-                                        <div className="h-2 w-20 bg-muted rounded" />
-                                        <div className="h-2 w-12 bg-muted/50 rounded" />
+                                        <div className="h-2 w-20 bg-muted-foreground/20 rounded" />
+                                        <div className="h-2 w-12 bg-muted-foreground/10 rounded" />
                                     </div>
                                 </div>
                             </div>

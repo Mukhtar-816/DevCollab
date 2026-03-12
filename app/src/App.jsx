@@ -7,25 +7,22 @@ import LoginPage from "./pages/Auth/Login";
 import RegisterPage from "./pages/Auth/Register";
 import DashboardPage from "./pages/Dashboard/Dashboard";
 import ProfilePage from "./pages/Profile/Profile";
+import { Provider } from "react-redux";
+import store from "./redux/store";
+import { ToastContainer } from "react-toastify";
+import { AppProvider } from "./context/AppContext";
+import CustomLoader from "./components/layout/CustomLoader";
+import AppRouter from "./Routes/AppRouter";
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <div className="min-h-screen bg-background text-foreground transition-colors duration-300 font-sans">
-          <Navbar />
-          <main>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-            </Routes>
-          </main>
-        </div>
-      </Router>
-    </ThemeProvider>
+    <Provider store={store}>
+      <AppProvider>
+        <ThemeProvider>
+          <AppRouter/>
+        </ThemeProvider>
+      </AppProvider>
+    </Provider>
   );
 }
 

@@ -1,35 +1,41 @@
 const profileDal = require("../DAL/profileDal.js");
+const userDal = require("../DAL/user.Dal.js");
 const CustomError = require("../utils/CustomError.js");
 
 class profileService {
-    constructor() {};
+    constructor() { };
 
 
     async createUserProfile(user) {
-        const profileData= {
-            userId : user._id,
-            name : user.username,
-            socials : {}
+        const profileData = {
+            userId: user._id,
+            name: user.username,
+            socials: {}
         };
 
         const profile = await profileDal.createProfile(profileData);
-        if (!profile) throw new CustomError({message : "Error creating profile", status : 400});
+        if (!profile) throw new CustomError({ message: "Error creating profile", status: 400 });
 
         return profile;
     };
 
 
     async getUserProfile(id) {
-        const userProfile = await profileDal.findProfileByKey({userId:id});
+        const userProfile = await profileDal.findProfileByKey({ userId: id });
+        const user = await userDal.findUserById(id);
 
-        if (!userProfile) throw new CustomError({message : "Profile doesnt exist", status : 404});
+        if (!userProfile) throw new CustomError({ message: "Profile doesnt exist", status: 404 });
 
-        return userProfile;
-    }
+         return {
+            ...user.toObject(),
+
+            ...userProfile.toObject()
+        }
+    };
 
     async updateUserProfile(userId, data) {
         const updatedData = {};
-        
+
         // Use Object.keys to iterate through the data object
         Object.keys(data).forEach(key => {
             if (data[key] !== undefined) {
@@ -39,8 +45,8 @@ class profileService {
 
         // Pass BOTH the userId and the filtered data to the DAL
         const profile = await profileDal.updateProfile(userId, updatedData);
-        
-        if (!profile) throw new CustomError({message: "Update failed", status: 400});
+
+        if (!profile) throw new CustomError({ message: "Update failed", status: 400 });
         return profile;
     }
 };

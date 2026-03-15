@@ -6,11 +6,12 @@ const profileSchema = new mongoose.Schema({
     ref: "User",
     required: [true, "User ID is required for a profile"],
     unique: true,
-    index: true // Speeds up lookups in the ProfileService
+    index: true 
   },
 
   name: {
     type: String,
+    required: [true, "A display name is required"],
     maxlength: [20, "Name cannot exceed 20 characters"],
     trim: true
   },
@@ -18,36 +19,41 @@ const profileSchema = new mongoose.Schema({
   avatar: {
     type: String,
     trim: true,
-    // Tip: Store the full URL if using Cloudinary/S3, 
-    // or just the filename if using local Multer storage.
-    default: "default-avatar.png"
+    default: "https://res.cloudinary.com/demo/image/upload/d_avatar.png/default.png"
   },
 
   bio: {
     type: String,
     maxlength: [200, "Bio is too long"],
-    trim: true
+    trim: true,
+    default: "New developer on DevCollab!"
+  },
+
+  // Added role here to match your UI's "Senior Frontend Engineer" etc.
+  roleTitle: {
+    type: String,
+    trim: true,
+    default: "Full Stack Developer"
   },
 
   skills: {
     type: [String],
-    default: [] // Good for filtering developers by tech stack
+    default: [],
+    index: true // Indexing this allows for fast matchmaking searches
   },
   
   location: {
     type: {
       type: String,
-      enum: ['Point'], // 'type' must be 'Point'
-      required: true,
+      enum: ['Point'],
       default: 'Point'
     },
     coordinates: {
       type: [Number], // [longitude, latitude]
-      required: true
+      default: [0, 0] // Default to center of the world or null
     }
   },
 
-  // Flattened socials for easier "Service Layer" updates
   socials: {
     github: { type: String, trim: true },
     linkedin: { type: String, trim: true },
@@ -56,5 +62,8 @@ const profileSchema = new mongoose.Schema({
   }
 
 }, { timestamps: true });
+
+// Crucial for Geospatial queries (finding nearby devs)
+profileSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Profile", profileSchema);

@@ -3,6 +3,8 @@ import { cn } from "../../utils/cn";
 
 const Input = React.forwardRef(({ className, type, ...props }, ref) => {
     return (
+        <>
+        {props?.label && <label className=" pl-1 text-gray-300/90">{props?.label}</label>}
         <input
             type={type}
             className={cn(
@@ -11,7 +13,7 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
             )}
             ref={ref}
             {...props}
-        />
+        /></>
     );
 });
 

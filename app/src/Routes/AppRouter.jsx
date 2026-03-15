@@ -19,6 +19,7 @@ import ProfilePage from '../pages/Profile/Profile';
 import Otp from '../pages/Otp/Otp.screen';
 
 import { useApp } from '../context/AppContext';
+import Test from '../pages/test';
 
 const AppRouter = () => {
     const { loading } = useApp();
@@ -45,6 +46,7 @@ const AppRouter = () => {
 
                 <main className="relative">
                     <Routes>
+                        <Route path={"/test"} element={<Test/>}/>
                         {/* Public Routes */}
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />

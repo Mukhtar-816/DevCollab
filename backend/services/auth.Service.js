@@ -35,11 +35,13 @@ class AuthService {
         const { accessToken, refreshToken } = reusable.generateTokens({ _id: userExist._id });
 
         await sessionService.createSession(userExist._id, refreshToken);
+        const {passwordHash, ...user} = userExist.toObject();
 
         return {
             success: true,
             accessToken,
             refreshToken,
+            user
         };
     }
 

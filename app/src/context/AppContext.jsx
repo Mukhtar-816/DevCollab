@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { refreshAccessToken } from "../redux/authSlice/auth.Actions";
+import { getUserProfile } from "../redux/userSlice/user.Actions";
 
 const AppContext = createContext();
 
@@ -39,7 +40,7 @@ export const AppProvider = ({ children }) => {
             const token = localStorage.getItem("accessToken");
             if (token) {
                 try {
-                    // await dispatch(getMe()).unwrap(); 
+                    await dispatch(getUserProfile()).unwrap();
                     setIsAuthenticated(true);
                 } catch (err) {
                     localStorage.removeItem("accessToken");

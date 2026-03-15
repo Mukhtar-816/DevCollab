@@ -5,7 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { Button } from "../ui/Button";
 import { cn } from "../../utils/cn";
 import { useSelector, useDispatch } from "react-redux";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 import { useApp } from "../../context/AppContext.jsx";
 import { logout } from "../../redux/authSlice/auth.Actions"; // Import your logout action
 
@@ -15,12 +15,11 @@ const Navbar = () => {
     const location = useLocation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const {setLoading} = useApp();
+    const { setLoading } = useApp();
 
     // 1. Hybrid State Access
     const { isAuthenticated, setIsAuthenticated } = useApp(); // Gatekeeper
-    // const { user } = useSelector((state) => state.auth);      // Data
-
+    const { user } = useSelector((state) => state.user);      // Data
     const isActive = (path) => location.pathname === path;
 
     // 2. Logic-Based Links
@@ -45,10 +44,10 @@ const Navbar = () => {
         }
     };
 
-    const user = {
-        username: "jasonidheididneideindin",
-        role: "dev"
-    }
+    // const user = {
+    //     username: "jasonidheididneideindin",
+    //     role: "dev"
+    // }
 
     return (
         <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md border-border/40">
@@ -96,7 +95,7 @@ const Navbar = () => {
                                             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWY2rbTZubB5i-IrHqk4q_v9z1UAIo2vhq1A&s" />
                                     </div>
                                     <div className="flex flex-col items-end mr-2">
-                                        <span className="text-xs font-bold text-primary truncate max-w-11">{user?.username|| "Developer"}</span>
+                                        <span className="text-xs font-bold text-primary truncate max-w-11">{user?.name || "Developer"}</span>
                                         <span className="text-[10px] text-muted-foreground truncate max-w-11 capitalize">{user?.role || "Member"}</span>
                                     </div>
                                     <Button size="sm" onClick={handleLogout} className="bg-transparent border-red-500/50 hover:bg-red-500/10 text-red-500">

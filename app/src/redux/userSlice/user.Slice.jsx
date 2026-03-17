@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getUserProfile } from "./user.Actions";
+import { getUserProfile, updateUserProfile } from "./user.Actions";
 
 const initialState = {
   success: false,
@@ -24,6 +24,19 @@ const userSlice = createSlice({
         state.success = true
       })
       .addCase(getUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+      })
+      .addCase(updateUserProfile.pending, (state, action) => {
+        state.loading = true
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.profile;
+        // console.log(action.payload.profile.name)
+        state.success = true
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
       })

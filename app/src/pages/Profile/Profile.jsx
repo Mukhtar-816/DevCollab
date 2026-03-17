@@ -16,15 +16,31 @@ import {
     Cross
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/Card";
 import { IoCloseSharp } from "react-icons/io5";
 import { Input } from "../../components/ui/Input";
+import { updateUserProfile } from "../../redux/userSlice/user.Actions";
+import { toast } from "react-toastify";
+
+
+const SkillComponent = ({ ...props }) => {
+    return (
+        <div className="w-fit inline-block hover:scale-105 transition-transform duration-300 bg-blue-900/10 rounded-md shadow-4xl p-2">
+            <div className="flex flex-row items-center">
+                {props?.skillName || "Skill"}
+                <IoCloseSharp onClick={props?.onRemove} size={14} className="ml-2 cursor-pointer hover:text-red-500 transition-colors" />
+            </div>
+        </div>
+    )
+};
 
 
 const ProfilePage = () => {
     // Accessing user from Redux
     const { user } = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+
 
     const [selectedImage, setSelectedImage] = useState(null);
     const [preview, setPreview] = useState(null);
@@ -38,6 +54,11 @@ const ProfilePage = () => {
         linkedin: "",
         portfolio: ""
     });
+
+    const handleRemoveSkill = (index) => {
+        const updatedSkills = formData.skills.filter((_, i) => i !== index);
+        setFormData(prev => ({ ...prev, skills: updatedSkills }));
+    };
 
     useEffect(() => {
         if (user && editProfileModal) {
@@ -55,23 +76,30 @@ const ProfilePage = () => {
     const handleChangeInput = (e) => {
         if (!e) return;
         const { name, value } = e.target;
-        if (name === 'skills') {
-            setFormData(prev => ({ ...prev, [name]: value.split(',').map(s => s.trim()) }));
-        } else {
-            setFormData(prev => ({ ...prev, [name]: value }));
-        }
+        // if (name === 'skills') {
+        //     setFormData(prev => ({ ...prev, [name]: value.split(',').map(s => s.trim()) }));
+        // } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+        // }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSubmitting(true);
-        // TODO: Integrate backend API call here
-        // For now, just close the modal
-        setTimeout(() => {
+        try {
+
+            setIsSubmitting(true);
+
+
+            await dispatch(updateUserProfile(formData)).unwrap();
+            toast.success("Profile Updated Successfully.");
+
+        } catch (error) {
+            toast.error(error);
+        }
+        finally {
             setIsSubmitting(false);
             setEditProfileModal(false);
-            // Optionally update local state or Redux if needed
-        }, 1000);
+        }
     };
 
     const profileItems = [
@@ -95,6 +123,17 @@ const ProfilePage = () => {
             // Use local 'image' variable directly to avoid async state lag
             const objectUrl = URL.createObjectURL(image);
             setPreview(objectUrl);
+        }
+    };
+
+    const handleAddSkill = () => {
+        const newSkill = prompt("Enter a new skill:");
+        if (formData.skills.includes(newSkill?.toLowerCase())) {
+            toast.error("Skill already added.");
+            return;
+        }
+        if (newSkill) {
+            setFormData(prev => ({ ...prev, skills: [...prev.skills, newSkill?.toLowerCase()] }));
         }
     };
 
@@ -152,13 +191,21 @@ const ProfilePage = () => {
                                 />
                             </div>
 
-                            <Input
-                                label="Skills"
-                                name="skills"
-                                value={formData.skills.join(', ')}
-                                onChange={handleChangeInput}
-                                placeholder="React, Node.js, Tailwind..."
-                            />
+                            <div>
+                                <label className="text-gray-400 font-semibold ml-1 ">Skills</label>
+                                <div className="flex flex-row items-center gap-2">
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {formData?.skills?.map((item, index) => (
+                                            <SkillComponent key={index} skillName={item} onRemove={() => handleRemoveSkill(index)} />
+                                        ))}
+                                    </div>
+                                    <div>
+                                        <Button className="mt-2" type={"button"} onClick={handleAddSkill}>
+                                            Add Skill
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className="pt-4 border-t border-border/50">
                                 <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-4">Social Presence</p>

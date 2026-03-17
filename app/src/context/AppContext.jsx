@@ -40,6 +40,7 @@ export const AppProvider = ({ children }) => {
             const token = localStorage.getItem("accessToken");
             if (token) {
                 try {
+                    console.log("verifying")
                     await dispatch(getUserProfile()).unwrap();
                     setIsAuthenticated(true);
                 } catch (err) {
@@ -50,7 +51,7 @@ export const AppProvider = ({ children }) => {
             setIsAppReady(true);
         };
         verifyUser();
-    }, [dispatch]);
+    }, [dispatch, isAuthenticated]);
 
     // 4. Activity-Aware Silent Refresh
     useEffect(() => {

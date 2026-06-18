@@ -5,11 +5,12 @@ const cors = require("cors");
 require("dotenv").config();
 const morgan = require("morgan");
 const authRoutes = require("./Routes/auth.routes.js");
+const userRoutes = require("./Routes/user.routes.js");
 const errorMiddleware = require("./middlewares/error.middleware.js");
 
 
 const CORSOPTIONS = {
-    origin : "http://localhost:3000",
+    origin : "http://localhost:5173",
     credentials : true,
 };
 
@@ -25,6 +26,7 @@ app.use(morgan("dev"));
 
 
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 
 
 

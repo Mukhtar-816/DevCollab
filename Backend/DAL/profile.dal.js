@@ -18,6 +18,19 @@ class ProfileDal {
     async findProfileByUserId(userId) {
         if (!userId) return null;
         return await Profile.findOne({ userId });
+    };
+
+
+    async updateProfile(userId, updatePayload = {}) {
+        if (!userId) return null;
+
+        const updatedProfile = await Profile.findOneAndUpdate(
+            { userId },
+            { $set: updatePayload },
+            { returnDocument : 'after', runValidators: true }
+        ).lean();
+
+        return updatedProfile;
     }
 }
 

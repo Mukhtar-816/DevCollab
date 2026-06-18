@@ -10,9 +10,9 @@ const authorizationMiddleware = async (req, res, next) => {
         const [scheme, token] = headers.split(" ");
         if (scheme != "Bearer" || !token) throw new CustomError(400, "Forbidden");
 
-        const decoded = reusable.verifyToken(token, "access");
+        const {success, decoded} = reusable.verifyToken(token, "access");
 
-        if (!decoded) throw new CustomError(400, "invalid Token");
+        if (!success) throw new CustomError(400, "invalid Token");
 
         req.user = decoded;
         next();

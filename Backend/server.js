@@ -10,7 +10,7 @@ const errorMiddleware = require("./middlewares/error.middleware.js");
 
 
 const CORSOPTIONS = {
-    origin : "http://localhost:5173",
+    origin : "http://localhost:5175",
     credentials : true,
 };
 

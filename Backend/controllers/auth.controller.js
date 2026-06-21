@@ -20,7 +20,7 @@ const loginController = async (req, res, next) => {
         setTokenCookie(res, response.refreshToken);
 
         return res.status(200).json({
-            message: "Logged In Successfully",
+            message: response.message,
             success: true,
             accessToken: response.accessToken
         });
@@ -52,7 +52,7 @@ const registerVerifyController = async (req, res, next) => {
 
         return res.status(201).json({
             success: true,
-            message: "Account Verified Successfully",
+            message: response.message,
             accessToken: response.accessToken,
             user: response.user
         });
@@ -97,7 +97,8 @@ const refreshAccessTokenController = async (req, res, next) => {
 
         return res.status(200).json({
             success: true,
-            accessToken: response.accessToken
+            accessToken: response.accessToken,
+            message : response.message
         });
     } catch (error) {
         next(error);

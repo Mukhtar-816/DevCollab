@@ -1,23 +1,65 @@
-import React from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import DashboardPage from '../pages/dashboard.js';
-import HomePage from '../pages/home.js';
-import ProfilePage from '../pages/profile.js';
-import Authentication from '../pages/Authentication.js';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import DashboardPage from "../pages/Dashboard";
+import HomePage from "../pages/Home";
+import ProfilePage from "../pages/Profile";
+import Authentication from "../pages/Authentication";
+
+import ProtectedRoute from "./ProtectedRoute";
+import PublicRoute from "./PublicRoute";
+import Otp from "../pages/Otp";
 
 const MainNavigation = () => {
   return (
-    <>
-      <BrowserRouter>
-        <Routes >
-          <Route path='/auth' element={<Authentication />} />
-          <Route path='/' element={<HomePage />} />
-          <Route path='/dashboard' element={<DashboardPage />} />
-          <Route path='/profile' element={<ProfilePage />} />
-        </Routes>
-      </BrowserRouter>
-    </>
-  )
-}
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/auth"
+          element={
+            <PublicRoute>
+              <Authentication />
+            </PublicRoute>
+          }
+        />
 
-export default MainNavigation
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <HomePage />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+        path="/register/verify"
+        element={
+          <PublicRoute>
+            <Otp/>
+          </PublicRoute>
+        }/>
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default MainNavigation;

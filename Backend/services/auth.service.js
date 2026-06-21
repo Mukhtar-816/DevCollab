@@ -30,7 +30,8 @@ class AuthService {
         return {
             success: true,
             accessToken,
-            refreshToken
+            refreshToken,
+            message : "Logged In Successfully"
         };
     };
 
@@ -100,7 +101,8 @@ class AuthService {
                 success: true,
                 user,
                 accessToken,
-                refreshToken
+                refreshToken,
+                message : "Registration Successfull."
             };
         });
     }
@@ -129,7 +131,8 @@ class AuthService {
         return {
             success: true,
             accessToken,
-            newToken
+            newToken,
+            message : "Token Reissued Successfully"
         };
     };
 };

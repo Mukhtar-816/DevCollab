@@ -1,8 +1,9 @@
 const { uploadImageBuffer } = require("../config/cloudinary.js");
 const profileDal = require("../DAL/profile.dal");
+const projectDal = require("../DAL/project.dal.js");
 const userDal = require("../DAL/user.dal");
 const CustomError = require("../utils/CustomError.js");
-const {logger} = require("../utils/reusable.js");
+const { logger } = require("../utils/reusable.js");
 
 
 class UserService {
@@ -63,11 +64,6 @@ class UserService {
 
             filteredUpdates.avatar = uploaded.secure_url;
             isChanged = true;
-
-            // filteredUpdates.avatar = {
-
-            //     publicId: uploaded.public_id,
-            // };
         }
 
         if (!isChanged) {
@@ -81,8 +77,19 @@ class UserService {
         }
 
         return updatedProfile;
-
     };
+
+    async getUserProjects(loggedInUser, requestedUser) {
+        const projects = await projectDal.getProjectsByUserId(requestedUser);
+
+        if (!projects) return [];
+
+        if (String(loggedInUser) === String(requestedUser)) {
+            return projects;
+        }
+
+        return projects.filter(project => project.visibility === "public");
+    }
 
 };
 

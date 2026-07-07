@@ -58,7 +58,7 @@ class AuthService {
         await redisDal.set(`temp:user:${email}`, tempUser, 600);
         await redisDal.set(`otp:${email}`, otp, 600);
 
-        await sendMail({to : email, subject : "OTP", text : `Your Verification OTP is : ${otp}`});
+        // await sendMail({to : email, subject : "OTP", text : `Your Verification OTP is : ${otp}`});
 
         return {
             success: true,

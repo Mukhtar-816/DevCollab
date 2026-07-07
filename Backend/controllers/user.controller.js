@@ -21,10 +21,6 @@ const getUserProfile = async (req, res, next) => {
     }
 };
 
-
-
-
-
 const updateUserProfile = async (req, res, next) => {
     try {
         const { name, bio, skills, avatar } = req.body;
@@ -47,6 +43,23 @@ const updateUserProfile = async (req, res, next) => {
     }
 };
 
+const getUserProjects = async (req, res, next) => {
+    try {
+        const loggedInUser = req.user?._id;
+        const requestedUser = req.params?.userId;
+
+        const response = await userService.getUserProjects(loggedInUser, requestedUser);
+
+        return res.status(200).json({
+            success : true,
+            message : "User projects fetched successfully",
+            projects : response
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getUserById = async (req, res, next) => {
     try {
 
@@ -56,6 +69,8 @@ const getUserById = async (req, res, next) => {
 };
 
 
+
+
 module.exports = {
-    getUserById, getUserProfile, updateUserProfile
+    getUserById, getUserProfile, updateUserProfile, getUserProjects
 };

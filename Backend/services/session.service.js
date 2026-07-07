@@ -2,30 +2,30 @@ const redisDal = require("../DAL/redis.dal.js");
 const reusable = require("../utils/reusable.js");
 
 class SessionService {
-    constructor(){}
+    constructor() { }
 
-    async createSession (userId, token) {
+    async createSession(userId, token) {
         const refreshTokenHashed = reusable.generateHash(token);
-
+        const ttl = process.env.SESSION_EXPIRES_IN;
+        const expiresAt = new Date(Date.now() + parseInt(ttl) * 1000);
         const session = {
             userId,
             refreshTokenHashed,
             revoked: false,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            expiresAt: expiresAt.toISOString()
         };
 
-        const ttl = 7 * 24 * 60 * 60;
 
         await redisDal.set(`session:${userId}`, session, ttl);
     };
 
-    async getCurrentSession (userId) {
+    async getCurrentSession(userId) {
         return await redisDal.get(`session:${userId}`);
     }
 
-    async revokeSession (userId) {
+    async revokeSession(userId) {
         return await redisDal.del(`session:${userId}`);
     }
 };
 
-module.exports =  new SessionService();
+module.exports = new SessionService();

@@ -1,6 +1,8 @@
+const { uploadImageBuffer } = require("../config/cloudinary.js");
 const profileDal = require("../DAL/profile.dal");
 const userDal = require("../DAL/user.dal");
 const CustomError = require("../utils/CustomError.js");
+const {logger} = require("../utils/reusable.js");
 
 
 class UserService {
@@ -27,12 +29,13 @@ class UserService {
             email: user.email,
             name: profile.name,
             avatar: profile.avatar,
-            bio: profile.bio
+            bio: profile.bio,
+            skills: profile.skills
         };
     };
 
 
-    async updateUserProfile(userId, profileUpdates) {
+    async updateUserProfile(userId, profileUpdates, file) {
 
         if (!userId || !profileUpdates || typeof profileUpdates !== "object" || Object.keys(profileUpdates).length === 0) throw new CustomError(400, "Forbidden");
 
@@ -42,7 +45,7 @@ class UserService {
 
         profileDoc.toObject();
 
-        const allowedUpdates = ["avatar", "bio", "name"];
+        const allowedUpdates = ["avatar", "bio", "name", "skills"];
         const filteredUpdates = {};
         let isChanged = false;
 
@@ -54,14 +57,21 @@ class UserService {
             }
         });
 
+        if (file?.buffer) {
+            logger("Uploading to Cloud");
+            const uploaded = await uploadImageBuffer(file.buffer);
+
+            filteredUpdates.avatar = uploaded.secure_url;
+            isChanged = true;
+
+            // filteredUpdates.avatar = {
+
+            //     publicId: uploaded.public_id,
+            // };
+        }
+
         if (!isChanged) {
-            return {
-                _id: profileDoc._id,
-                name: profileDoc.name,
-                avatar: profileDoc.avatar,
-                bio: profileDoc.bio,
-                message: "No changes detected, profile remains identical"
-            };
+            throw new CustomError(400, "No changes detected, profile remains identical");
         };
 
         const updatedProfile = await profileDal.updateProfile(userId, filteredUpdates);
@@ -70,12 +80,7 @@ class UserService {
             throw new CustomError(400, "Update Failed");
         }
 
-        return {
-            _id: updatedProfile._id,
-            name: updatedProfile.name,
-            avatar: updatedProfile.avatar,
-            bio: updatedProfile.bio
-        };
+        return updatedProfile;
 
     };
 

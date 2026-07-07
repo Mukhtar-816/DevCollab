@@ -20,6 +20,19 @@ class ProfileDal {
         return await Profile.findOne({ userId });
     };
 
+    async searchProfiles(query, cursor, limit) {
+        const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+
+        return await Profile.find({
+            ...(cursor ? { _id: { $lt: cursor } } : {}),
+            $or: [{ name: regex }, { bio: regex }],
+        })
+            .sort({ _id: -1 })
+            .limit(limit)
+            .select('name avatar bio skills userId')
+            .lean();
+    }
+
 
     async updateProfile(userId, updatePayload = {}) {
         if (!userId) return null;
@@ -27,7 +40,7 @@ class ProfileDal {
         const updatedProfile = await Profile.findOneAndUpdate(
             { userId },
             { $set: updatePayload },
-            { returnDocument : 'after', runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         ).lean();
 
         return updatedProfile;

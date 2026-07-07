@@ -5,6 +5,7 @@ const reusable = require("../utils/reusable.js");
 const sessionService = require("./session.service.js");
 const CustomError = require("../utils/CustomError.js");
 const {runInTransaction} = require("../utils/transaction.helper.js");
+const { sendMail } = require("../utils/reusable.js");
 
 class AuthService {
     constructor() {};
@@ -56,6 +57,8 @@ class AuthService {
 
         await redisDal.set(`temp:user:${email}`, tempUser, 600);
         await redisDal.set(`otp:${email}`, otp, 600);
+
+        await sendMail({to : email, subject : "OTP", text : `Your Verification OTP is : ${otp}`});
 
         return {
             success: true,

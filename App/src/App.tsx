@@ -1,20 +1,21 @@
-import React from 'react'
+import { useEffect } from 'react'
 import MainNavigation from './navigation/MainNavigation.tsx'
-import { Provider } from 'react-redux'
-import { store } from './redux/store.tsx'
+import { useDispatch } from 'react-redux'
 import { ToastContainer } from 'react-toastify'
-import { ContextProvider } from './context/authContext.tsx'
+import { initAuth } from './redux/slices/authSlice/auth.actions.tsx'
 
 const App = () => {
+  const dispatch = useDispatch();
+
+  //init App
+  useEffect(() => {
+    dispatch(initAuth() as any);
+  }, []);
+
   return (
     <>
-      <ContextProvider>
-        <Provider store={store}>
-          <MainNavigation />
-          <ToastContainer />
-
-        </Provider>
-      </ContextProvider>
+      <MainNavigation />
+      <ToastContainer />
     </>
   )
 }

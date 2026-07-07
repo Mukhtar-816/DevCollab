@@ -1,14 +1,14 @@
-// Authentication.tsx
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useRef } from 'react';
 import CustomInput from '../components/CustomInput';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../redux/store';
+import type { AppDispatch } from '../redux/store';
 import { login, register } from '../redux/slices/authSlice/auth.actions';
 import { clearError } from '../redux/slices/authSlice/auth.slice';
 import { toast } from 'react-toastify';
-import { useAuth } from '../context/authContext';
+import { normalizeError } from '../utils/getErrorMessage';
+import Button from '../components/Button';
+import { ShieldCheck } from 'lucide-react';
 
 type Tab = 'login' | 'signup';
 
@@ -20,8 +20,7 @@ const authActions = {
 const Authentication = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const {setIsAuthenticated} : any = useAuth();
-  const { loading, error, success, pendingMode } = useSelector((state: RootState) => state.auth);
+  const { loading }: any = useSelector((state: any) => state.auth);
 
   const [currentTab, setCurrentTab] = useState<Tab>('login');
   const [formData, setFormData] = useState({
@@ -35,7 +34,7 @@ const Authentication = () => {
   function switchTab(tab: Tab) {
     if (loading) return;
     setCurrentTab(tab);
-    setFormData({ email: "", password: "", confirmPassword: ""});
+    setFormData({ email: "", password: "", confirmPassword: "" });
     dispatch(clearError());
   }
 
@@ -43,73 +42,104 @@ const Authentication = () => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-  if (loading || submitLockRef.current) return;
+    if (loading || submitLockRef.current) return;
 
-  if (currentTab === 'signup' && formData.password !== formData.confirmPassword) {
-    return;
+    const email = formData.email.trim();
+    const password = formData.password.trim();
+    const confirmPassword = formData.confirmPassword?.trim();
+
+    if (!email || !password) {
+      toast.error("Email and password are required.");
+      return;
+    }
+
+    if (currentTab === "signup") {
+      if (!confirmPassword) {
+        toast.error("Please confirm your password.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        toast.error("Passwords do not match.");
+        return;
+      }
+    }
+
+    submitLockRef.current = true;
+
+    try {
+      const action =
+        currentTab === "login"
+          ? authActions.login({ email, password })
+          : authActions.signup({ email, password });
+
+      await dispatch(action).unwrap();
+
+      if (currentTab === "login") {
+        toast.success("Login successful");
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
+      toast.success("OTP sent to your email");
+      navigate("/register/verify", {
+        state: { email },
+        replace: true,
+      });
+    } catch (error) {
+      let er: any = normalizeError(error);
+      toast.error(er.error || "Authentication failed");
+    } finally {
+      submitLockRef.current = false;
+    }
   }
 
-  if (!formData.email || !formData.password) return;
-
-  submitLockRef.current = true;
-  const mode = currentTab;
-
-  const action = mode === 'login'
-    ? authActions.login({ email: formData.email, password: formData.password })
-    : authActions.signup({ email: formData.email, password: formData.password });
-
-  try {
-    await dispatch(action).unwrap();
-    if (mode === 'login') {
-      setIsAuthenticated(true);
-      navigate('/dashboard');
-    } else {
-      navigate('/register/verify', { state: { email: formData.email } });
-    };
-  } catch  (e : any) {
-    toast.error(`Error :${e?.error} : ${JSON.stringify(e?.details)}`);
-    console.log(JSON.stringify(e));
-  } finally {
-    submitLockRef.current = false;
-  }
-}
   const features = [
-    "Collaborate on real projects with real devs",
-    "Build a portfolio that recruiters notice",
-    "Get feedback from senior engineers",
+    "Collaborate on real-world projects with devs",
+    "Build a verified profile showing your tech stack",
+    "Engage with feedback and code reviews",
   ];
 
-  const showError = error && pendingMode === null && !loading;
   const passwordMismatch =
     currentTab === 'signup' &&
     formData.confirmPassword.length > 0 &&
     formData.password !== formData.confirmPassword;
 
   return (
-    <div className='bg-red-900 flex w-full h-[100vh] justify-center items-center'>
-    
+    <div className="bg-zinc-950 min-h-screen flex w-full justify-center items-center relative overflow-hidden px-4 select-none selection:bg-indigo-500/30 selection:text-indigo-200">
+      {/* Background glow effects */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/3 translate-x-1/3" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none translate-y-1/3 -translate-x-1/3" />
 
-      <div className='bg-white shadow-2xl transition-all min-w-75 w-100 mx-5 flex md:min-h-150 my-10 sm:mx-10 sm:min-w-150 sm:w-250 overflow-hidden border-white/60 border rounded-lg'>
-        <div className='w-1/3 bg-red-900 p-8 space-y-8 hidden sm:flex sm:flex-col relative overflow-hidden'>
-          <div className='absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full' />
-          <div className='absolute bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full' />
-          <div className='absolute top-1/2 right-0 w-24 h-24 bg-red-700/40 rounded-full blur-xl' />
+      {/* Main card box */}
+      <div className="relative z-10 w-full max-w-4xl bg-zinc-900/50 backdrop-blur-xl border border-zinc-800/80 shadow-2xl rounded-2xl overflow-hidden flex flex-col md:flex-row min-h-[560px]">
+        
+        {/* Left Side: Branding and Features */}
+        <div className="w-full md:w-5/12 bg-gradient-to-br from-indigo-950/40 via-zinc-900/80 to-zinc-950 p-8 flex flex-col justify-between border-r border-zinc-800/60">
+          <div className="space-y-8">
+            <div className="flex items-center gap-2" onClick={() => navigate('/')}>
+              <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-extrabold text-xs">
+                D
+              </div>
+              <span className="font-extrabold text-sm text-zinc-100 tracking-tight">DevCollab</span>
+            </div>
 
-          <div className='relative z-10 space-y-8'>
-            <h1 className='text-red-800 font-bold text-2xl border-[1px] border-red-200 rounded-md text-center bg-red-100 px-2 py-1'>
-              Welcome to DevCollab :)
-            </h1>
-            <h1 className='text-white/80 text-sm'>
-              Tell us about yourself and show your potential...!
-            </h1>
+            <div className="space-y-4">
+              <h2 className="text-zinc-100 font-extrabold text-xl leading-tight">
+                Unlock project collaboration.
+              </h2>
+              <p className="text-zinc-400 text-xs leading-relaxed">
+                Connect with engineers worldwide to coordinate, build, and publish modern software.
+              </p>
+            </div>
 
-            <ul className='space-y-4 pt-4'>
+            <ul className="space-y-4 pt-2">
               {features.map((f, i) => (
-                <li key={i} className='flex items-start gap-3 text-white/90 text-sm'>
-                  <span className='mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-white/15 flex items-center justify-center text-xs'>
+                <li key={i} className="flex items-start gap-3 text-zinc-300 text-xs">
+                  <span className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-[9px]">
                     ✓
                   </span>
                   <span>{f}</span>
@@ -118,24 +148,21 @@ const Authentication = () => {
             </ul>
           </div>
 
-          <div className='relative z-10 mt-auto pt-10'>
-            <div className='flex -space-x-2'>
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className='w-8 h-8 rounded-full bg-red-700 border-2 border-red-900 flex items-center justify-center text-[10px] text-white/80'>
-                  D{i}
-                </div>
-              ))}
-            </div>
-            <p className='text-white/60 text-xs mt-2'>Join 2,000+ developers already collaborating</p>
+          <div className="mt-12 pt-6 border-t border-zinc-900 flex items-center gap-2 text-zinc-500 text-[10px] font-semibold tracking-wide uppercase">
+            <ShieldCheck className="h-4 w-4 text-indigo-500" />
+            <span>Secure JWT Authentication</span>
           </div>
         </div>
 
-        <div className='flex p-10 w-full sm:w-2/3'>
-          <form onSubmit={handleSubmit} className='flex flex-col gap-8 w-full justify-center'>
-            <div className='relative max-w-45 px-2 py-1 justify-between border-neutral-100 border shadow-lg shadow-neutral-200 rounded-md flex flex-row'>
+        {/* Right Side: Tab Buttons & Form fields */}
+        <div className="w-full md:w-7/12 p-8 sm:p-10 flex flex-col justify-center bg-zinc-900/30">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full max-w-sm mx-auto">
+            
+            {/* Custom tab switcher */}
+            <div className="relative p-1 bg-zinc-950 border border-zinc-900 rounded-xl flex w-fit">
               <div
-                className={`absolute top-1 left-2 bg-red-900 w-21 rounded-md ease-in-out transition-all duration-500 h-8 -z-0 ${
-                  currentTab === "login" ? "translate-x-0" : "translate-x-20"
+                className={`absolute top-1 bottom-1 bg-indigo-600 rounded-lg ease-in-out transition-all duration-300 -z-0 ${
+                  currentTab === 'login' ? 'left-1 w-20' : 'left-21 w-20'
                 }`}
               />
 
@@ -143,49 +170,45 @@ const Authentication = () => {
                 type="button"
                 disabled={loading}
                 onClick={() => switchTab('login')}
-                className={`w-21 h-8 relative z-10 text-md transition-colors duration-300 disabled:cursor-not-allowed ${
-                  currentTab === 'login' ? "text-white" : "text-red-900"
+                className={`w-20 py-1.5 relative z-10 text-xs font-bold transition-colors duration-300 rounded-lg cursor-pointer ${
+                  currentTab === 'login' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                Login
+                Sign In
               </button>
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => switchTab('signup')}
-                className={`w-21 h-8 relative z-10 text-md transition-colors duration-300 disabled:cursor-not-allowed ${
-                  currentTab === 'signup' ? "text-white" : "text-red-900"
+                className={`w-20 py-1.5 relative z-10 text-xs font-bold transition-colors duration-300 rounded-lg cursor-pointer ${
+                  currentTab === 'signup' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                SignUp
+                Sign Up
               </button>
             </div>
 
-            <div className='-mt-4 h-5'>
-              <h1 className='text-neutral-400 text-sm transition-all duration-300'>
-                {currentTab === "login"
-                  ? "Resume your progress with our platform"
-                  : "Join us and start your productive journey"}
-              </h1>
+            {/* Helper title */}
+            <div>
+              <h3 className="text-zinc-200 font-bold text-lg">
+                {currentTab === 'login' ? 'Welcome back' : 'Create an account'}
+              </h3>
+              <p className="text-zinc-500 text-xs mt-1">
+                {currentTab === 'login' 
+                  ? 'Sign in to access your projects and dashboard.' 
+                  : 'Get started by configuring your user credentials.'}
+              </p>
             </div>
 
-            <div className='flex flex-col gap-4'>
-              {/* {currentTab === 'signup' && (
-                <CustomInput
-                  title="Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  type="text"
-                />
-              )} */}
-
+            <div className="flex flex-col gap-4">
               <CustomInput
                 title="Email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 type="email"
+                disabled={loading}
+                required
               />
               <CustomInput
                 title="Password"
@@ -193,88 +216,63 @@ const Authentication = () => {
                 value={formData.password}
                 onChange={handleChange}
                 type="password"
+                disabled={loading}
+                required
               />
 
-              <div
-                className={`grid transition-all duration-500 ease-in-out ${
-                  currentTab === 'signup' ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                }`}
-              >
-                <div className='overflow-hidden'>
+              {currentTab === 'signup' && (
+                <div className="animate-in fade-in slide-in-from-top-1 duration-200">
                   <CustomInput
                     title="Confirm Password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     type="password"
+                    disabled={loading}
+                    required
                   />
                 </div>
-              </div>
-
-              {passwordMismatch && (
-                <p className='text-red-600 text-xs -mt-2'>Passwords don't match</p>
               )}
 
-              {showError && (
-                <p className='text-red-600 text-xs -mt-2'>{error?.message}</p>
+              {passwordMismatch && (
+                <p className="text-rose-500 text-[11px] font-medium -mt-1">Passwords do not match</p>
               )}
             </div>
 
-            {currentTab === "login" && (
-              <button type="button" className='text-xs text-red-900 self-end -mt-4 hover:underline transition-all'>
+            {currentTab === 'login' && (
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-[11px] text-zinc-400 hover:text-indigo-400 self-end -mt-2 transition-colors cursor-pointer"
+              >
                 Forgot password?
               </button>
             )}
 
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className='bg-red-900 text-white rounded-md h-10 w-full hover:bg-red-800 active:scale-[0.98] transition-all duration-200 shadow-md shadow-red-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100'
+              isLoading={loading}
+              className="w-full mt-2 py-2.5 font-bold"
             >
-              {loading
-                ? "Please wait..."
-                : currentTab === "login" ? "Login" : "Create Account"}
-            </button>
+              {currentTab === 'login' ? 'Sign In' : 'Create Account'}
+            </Button>
 
-            <div className='flex items-center gap-3'>
-              <div className='h-px bg-neutral-200 flex-1' />
-              <span className='text-neutral-400 text-xs'>or continue with</span>
-              <div className='h-px bg-neutral-200 flex-1' />
-            </div>
-
-            <div className='flex gap-3'>
+            <p className="text-center text-xs text-zinc-500">
+              {currentTab === 'login' ? "Don't have an account? " : "Already have an account? "}
               <button
                 type="button"
                 disabled={loading}
-                className='flex-1 h-10 border border-neutral-200 rounded-md text-sm text-neutral-600 hover:bg-neutral-50 transition-all disabled:opacity-60 disabled:cursor-not-allowed'
+                onClick={() => switchTab(currentTab === 'login' ? 'signup' : 'login')}
+                className="text-indigo-400 font-bold hover:underline hover:text-indigo-300 disabled:opacity-50 cursor-pointer"
               >
-                Google
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                className='flex-1 h-10 border border-neutral-200 rounded-md text-sm text-neutral-600 hover:bg-neutral-50 transition-all disabled:opacity-60 disabled:cursor-not-allowed'
-              >
-                GitHub
-              </button>
-            </div>
-
-            <p className='text-center text-xs text-neutral-400'>
-              {currentTab === "login" ? "Don't have an account? " : "Already have an account? "}
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => switchTab(currentTab === "login" ? "signup" : "login")}
-                className='text-red-900 font-medium hover:underline disabled:cursor-not-allowed disabled:opacity-60'
-              >
-                {currentTab === "login" ? "Sign up" : "Login"}
+                {currentTab === 'login' ? 'Sign up' : 'Sign in'}
               </button>
             </p>
           </form>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Authentication
+export default Authentication;

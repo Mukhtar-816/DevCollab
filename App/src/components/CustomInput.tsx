@@ -1,18 +1,31 @@
-import React from 'react'
+import React from 'react';
+import Input from './Input';
 
-const CustomInput = ({...props}) => {
-  return (
-    <div className='max-w-75 sm:max-w-150 py-2'>
-      {props?.title && <h1 className='text-neutral-700 text-sm pb-2 font-semibold'>{props?.title?.replace(`${props?.title[0]}`, `${props?.title[0]?.toUpperCase()}`)}</h1>}
-      <input name={props?.title?.trim()}
-      placeholder={`Enter ${props?.title}`}
-      value={props?.value}
-      onChange={props?.onChange}
-      {...props}
-      className={`${props?.value?.length > 0 ? "border-red-800 border" : "border border-neutral-100"} w-full  shadow-sm rounded-md outline-none px-5 py-2`}
-      />
-    </div>
-  )
+interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  title?: string;
+  name?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default CustomInput
+const CustomInput: React.FC<CustomInputProps> = ({ title, name, value, onChange, className = '', ...props }) => {
+  const formattedTitle = title 
+    ? title.replace(/^[a-z]/, (char) => char.toUpperCase()) 
+    : '';
+
+  return (
+    <div className="w-full">
+      <Input
+        label={formattedTitle}
+        name={name || title}
+        value={value}
+        onChange={onChange}
+        placeholder={`Enter ${formattedTitle.toLowerCase()}`}
+        className={className}
+        {...props}
+      />
+    </div>
+  );
+};
+
+export default CustomInput;

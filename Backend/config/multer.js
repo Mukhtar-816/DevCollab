@@ -1,20 +1,30 @@
 const multer = require("multer");
-const CustomError = require("../utils/CustomError.js");
 
 const storage = multer.memoryStorage();
 
-const fileFilter = (req, file, next) => {
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-    
-    if (!allowedTypes.includes(file.mimetype)) throw new CustomError(404, "Invalid Format");
+const fileFilter = (req, file, cb) => {
+  if (!file || !file.mimetype) {
+    return cb(new Error("Invalid file upload"), false);
+  }
 
-    next(null, true);
-}
+  if (file.mimetype.startsWith("image/")) {
+    return cb(null, true);
+  }
+
+  return cb(new Error("Only image files are allowed"), false);
+};
 
 const upload = multer({
-    storage,
-    fileFilter,
-    limits : 2 * 1024 * 1024 //2mb
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
 });
 
-// const uploadSingleFile = ()
+const uploadSingleAvatar = upload.single("avatar");
+
+module.exports = {
+  upload,
+  uploadSingleAvatar,
+};

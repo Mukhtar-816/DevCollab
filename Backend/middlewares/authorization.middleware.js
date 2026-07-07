@@ -5,14 +5,14 @@ const authorizationMiddleware = async (req, res, next) => {
     try {
         const headers = req.headers?.authorization || false; //Custom for security
 
-        if (!headers) throw new CustomError(400, "Missing headers" );
+        if (!headers) throw new CustomError(401, "Missing headers" );
 
         const [scheme, token] = headers.split(" ");
-        if (scheme != "Bearer" || !token) throw new CustomError(400, "Forbidden");
+        if (scheme != "Bearer" || !token) throw new CustomError(401, "Forbidden");
 
         const {success, decoded} = reusable.verifyToken(token, "access");
 
-        if (!success) throw new CustomError(400, "invalid Token");
+        if (!success) throw new CustomError(401, "invalid Token");
 
         req.user = decoded;
         next();

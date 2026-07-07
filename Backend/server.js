@@ -7,11 +7,12 @@ const morgan = require("morgan");
 const authRoutes = require("./Routes/auth.routes.js");
 const userRoutes = require("./Routes/user.routes.js");
 const errorMiddleware = require("./middlewares/error.middleware.js");
+const cookieParser = require("cookie-parser");
 
 
 const CORSOPTIONS = {
-    origin : "http://localhost:5175",
-    credentials : true,
+    origin: "http://localhost:5173",
+    credentials: true,
 };
 
 const PORT = process.env.PORT || 3000;
@@ -20,9 +21,10 @@ const DEV = process.env.NODE_ENV == "DEV";
 const app = express();
 
 app.use(express.json())
-app.use(express({urlencoded : true}));
+app.use(express({ urlencoded: true }));
 app.use(cors(CORSOPTIONS));
 app.use(morgan("dev"));
+app.use(cookieParser());
 
 
 app.use("/auth", authRoutes);

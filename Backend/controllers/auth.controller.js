@@ -7,7 +7,7 @@ const setTokenCookie = (res, token) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "PROD",
         sameSite: process.env.NODE_ENV === "PROD" ? "strict" : "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: parseInt(process.env.SESSION_EXPIRES_IN) * 1000,
         path: "/"
     });
 };
@@ -64,8 +64,8 @@ const registerVerifyController = async (req, res, next) => {
 const logoutController = async (req, res, next) => {
     try {
 
-        const refreshToken  = req.cookie?.refreshToken;
-        
+        const refreshToken = req.cookie?.refreshToken;
+
         if (refreshToken) {
             const { decoded, success } = reusable.verifyToken(refreshToken, "refresh");
             if (success) {
@@ -98,7 +98,7 @@ const refreshAccessTokenController = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             accessToken: response.accessToken,
-            message : response.message
+            message: response.message
         });
     } catch (error) {
         next(error);

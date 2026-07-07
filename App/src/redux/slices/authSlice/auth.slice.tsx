@@ -1,35 +1,33 @@
-// auth.slice.tsx
 import { createSlice } from "@reduxjs/toolkit";
-import { login, logout, register, registerVerify } from "./auth.actions";
-
-interface User {
-  _id: string;
-  email: string;
-  name: string;
-}
+import {
+  initAuth,
+  login,
+  logout,
+  refreshAccessToken,
+  register,
+  registerVerify,
+} from "./auth.actions";
 
 interface ApiError {
   error: string;
   statusCode?: number;
-  details : any
+  details?: any;
 }
 
 interface AuthState {
-  user: User | null;
-  accessToken: string | null;
+  isAuthenticated: boolean;
+  isAuthChecked: boolean;
   loading: boolean;
-  success: boolean;
+  refreshing: boolean;
   error: ApiError | null;
-  pendingMode: "login" | "register" | null;
 }
 
 const initialState: AuthState = {
-  user: null,
-  accessToken: null,
+  isAuthenticated: false,
+  isAuthChecked: false,
   loading: false,
-  success: false,
+  refreshing: false,
   error: null,
-  pendingMode: null,
 };
 
 const authSlice = createSlice({
@@ -39,93 +37,107 @@ const authSlice = createSlice({
     clearError(state) {
       state.error = null;
     },
-    clearAuth(state) {
-      state.user = null;
-      state.accessToken = null;
-      state.success = false;
-      state.error = null;
+    clearAuthState() {
+      return initialState;
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(initAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(initAuth.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.isAuthChecked = true;
+        state.error = null;
+
+        if (payload?.user) {
+          state.isAuthenticated = true;
+        } else {
+          state.isAuthenticated = false;
+        }
+      })
+      .addCase(initAuth.rejected, (state, { payload }) => {
+        state.loading = false;
+        state.isAuthChecked = true;
+        state.isAuthenticated = false;
+        state.error = payload as ApiError;
+      })
+
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.success = false;
-        state.pendingMode = "login";
       })
-      .addCase(login.fulfilled, (state, { payload }) => {
+      .addCase(login.fulfilled, (state, { payload: _payload }) => {
         state.loading = false;
-        state.success = true;
-        state.user = payload.user;
-        state.accessToken = payload.accessToken;
+        state.isAuthenticated = true;
+        state.isAuthChecked = true;
         state.error = null;
-        state.pendingMode = null;
       })
       .addCase(login.rejected, (state, { payload }) => {
         state.loading = false;
-        state.success = false;
-        state.error = payload;
-        state.pendingMode = null;
+        state.isAuthenticated = false;
+        state.isAuthChecked = true;
+        state.error = payload as ApiError;
       })
+
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.success = false;
-        state.pendingMode = "register";
       })
-      .addCase(register.fulfilled, (state, { payload }) => {
+      .addCase(register.fulfilled, (state) => {
         state.loading = false;
-        state.success = true;
-        state.user = payload.user;
-        state.accessToken = payload.accessToken;
         state.error = null;
-        state.pendingMode = null;
       })
       .addCase(register.rejected, (state, { payload }) => {
         state.loading = false;
-        state.success = false;
-        state.error = payload;
-        state.pendingMode = null;
+        state.error = payload as ApiError;
       })
+
       .addCase(registerVerify.pending, (state) => {
         state.loading = true;
         state.error = null;
-        state.success = false;
-        state.pendingMode = "registerVerify";
       })
-      .addCase(registerVerify.fulfilled, (state, { payload }) => {
+      .addCase(registerVerify.fulfilled, (state, { payload: _payload }) => {
         state.loading = false;
-        state.success = true;
-        state.user = payload.user;
-        state.accessToken = payload.accessToken;
+        state.isAuthenticated = true;
+        state.isAuthChecked = true;
         state.error = null;
-        state.pendingMode = null;
       })
       .addCase(registerVerify.rejected, (state, { payload }) => {
         state.loading = false;
-        state.success = false;
-        state.error = payload;
-        state.pendingMode = null;
+        state.isAuthenticated = false;
+        state.isAuthChecked = true;
+        state.error = payload as ApiError;
       })
-      .addCase(logout.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(logout.fulfilled, (state) => {
-        state.loading = false;
-        state.user = null;
-        state.accessToken = null;
-        state.success = false;
+
+      .addCase(refreshAccessToken.pending, (state) => {
+        state.refreshing = true;
         state.error = null;
       })
+      .addCase(refreshAccessToken.fulfilled, (state) => {
+        state.refreshing = false;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(refreshAccessToken.rejected, (state, { payload }) => {
+        state.refreshing = false;
+        state.isAuthenticated = false;
+        state.error = payload as ApiError;
+      })
+
+      .addCase(logout.fulfilled, () => {
+        return {
+          ...initialState,
+          isAuthChecked: true,
+        };
+      })
       .addCase(logout.rejected, (state, { payload }) => {
-        state.loading = false;
-        state.user = null;
-        state.accessToken = null;
-        state.error = payload;
+        state.error = payload as ApiError;
       });
   },
 });
 
-export const { clearError, clearAuth } = authSlice.actions;
+export const { clearError, clearAuthState } = authSlice.actions;
 export default authSlice.reducer;

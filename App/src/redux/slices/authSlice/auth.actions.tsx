@@ -1,7 +1,8 @@
-// auth.actions.tsx
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../../api/axios";
-import { AxiosError } from "axios";
+import { normalizeError, type AppError } from "../../../utils/getErrorMessage";
+import { getUserProfile } from "../../slices/userSlice/user.actions";
+import { clearUserState } from "../../slices/userSlice/user.slice";
 
 interface LoginCredentials {
   email: string;
@@ -14,9 +15,9 @@ interface RegisterCredentials {
 }
 
 interface RegisterVerification {
-  email : string,
-  otp : Number
-};
+  email: string;
+  otp: string;
+}
 
 interface User {
   _id: string;
@@ -30,79 +31,118 @@ interface AuthResponse {
   accessToken: string;
 }
 
-interface ApiError {
-  error: string;
-  statusCode?: number;
-  details: any
+interface RefreshAccessTokenResponse {
+  success?: boolean;
+  accessToken: string;
 }
 
-export const login = createAsyncThunk<AuthResponse, LoginCredentials, { rejectValue: ApiError }>(
-  "auth/login",
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const res = await axiosInstance.post("auth/login", { email, password });
-      if (res.data.success) localStorage.setItem("accessToken", res.data.accessToken);
-      return res.data;
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      return rejectWithValue({
-        error: axiosError.response?.data?.error ?? "Login failed. Please try again.",
-        statusCode: axiosError.response?.status ?? 500,
-        details: axiosError.response?.data?.details ?? "No Details"
-      });
-    }
+export const initAuth = createAsyncThunk<
+  { user: User },
+  void,
+  { rejectValue: AppError }
+>("auth/initAuth", async (_, { rejectWithValue, dispatch }) => {
+  try {
+    // wait for profile restore too
+    const user = await dispatch(getUserProfile()).unwrap();
+
+    return { user };
+  } catch (error) {
+    localStorage.removeItem("accessToken");
+    return rejectWithValue(normalizeError(error));
   }
-);
+});
 
-export const register = createAsyncThunk<AuthResponse, RegisterCredentials, { rejectValue: ApiError }>(
-  "auth/register",
-  async ({ email, password, ...data }, { rejectWithValue }) => {
-    try {
-      const res = await axiosInstance.post("auth/register", { email, password, ...data });
-      return res.data;
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      return rejectWithValue({
-        error: axiosError.response?.data?.error ?? "Register failed. Please try again.",
-        statusCode: axiosError.response?.status ?? 500,
-        details: axiosError.response?.data?.details ?? "No Details"
-      });
+export const login = createAsyncThunk<
+  AuthResponse,
+  LoginCredentials,
+  { rejectValue: AppError }
+>("auth/login", async ({ email, password }, { rejectWithValue, dispatch }) => {
+  try {
+    const res = await axiosInstance.post("/auth/login", { email, password });
+
+    if (res.data?.success && res.data?.accessToken) {
+      localStorage.setItem("accessToken", res.data.accessToken);
     }
+
+    // optional but recommended: immediately hydrate user/profile after login
+    await dispatch(getUserProfile()).unwrap();
+
+    return res.data;
+  } catch (error) {
+    return rejectWithValue(normalizeError(error));
   }
-);
+});
 
+export const register = createAsyncThunk<
+  AuthResponse,
+  RegisterCredentials,
+  { rejectValue: AppError }
+>("auth/register", async ({ email, password }, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.post("/auth/register", { email, password });
+    return res.data;
+  } catch (error) {
+    return rejectWithValue(normalizeError(error));
+  }
+});
 
-export const registerVerify = createAsyncThunk<AuthResponse, RegisterVerification, { rejectValue: ApiError }>(
+export const registerVerify = createAsyncThunk<
+  AuthResponse,
+  RegisterVerification,
+  { rejectValue: AppError }
+>(
   "auth/register/verify",
-  async ({ email, otp }, { rejectWithValue }) => {
+  async ({ email, otp }, { rejectWithValue, dispatch }) => {
     try {
-       const res = await axiosInstance.post("auth/register/verify", { email, otp });
-       if (res.data?.success) localStorage.setItem("accessToken", res.data?.accessToken);
+      const res = await axiosInstance.post("/auth/register/verify", {
+        email,
+        otp,
+      });
+
+      if (res.data?.success && res.data?.accessToken) {
+        localStorage.setItem("accessToken", res.data.accessToken);
+      }
+
+      // optional but recommended: hydrate user/profile after verification login
+      await dispatch(getUserProfile()).unwrap();
+
       return res.data;
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      return rejectWithValue({
-        error: axiosError.response?.data?.error ?? "Register Verification. Please try again.",
-        statusCode: axiosError.response?.status ?? 500,
-        details: axiosError.response?.data?.details ?? "No Details"
-      });
+      return rejectWithValue(normalizeError(error));
     }
   }
 );
 
-export const logout = createAsyncThunk<void, void, { rejectValue: ApiError }>(
+export const refreshAccessToken = createAsyncThunk<
+  RefreshAccessTokenResponse,
+  void,
+  { rejectValue: AppError }
+>("auth/refresh-access-token", async (_, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.post("/auth/refresh-access-token");
+
+    if (res.data?.accessToken) {
+      localStorage.setItem("accessToken", res.data.accessToken);
+    }
+
+    return res.data;
+  } catch (error) {
+    localStorage.removeItem("accessToken");
+    return rejectWithValue(normalizeError(error));
+  }
+});
+
+export const logout = createAsyncThunk<void, void, { rejectValue: AppError }>(
   "auth/logout",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
-      const res = await axiosInstance.post("auth/logout");
-      if (res.data?.success) localStorage.removeItem("accessToken");
+      await axiosInstance.post("/auth/logout");
+      localStorage.removeItem("accessToken");
+
+      // clear user slice too
+      dispatch(clearUserState());
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      return rejectWithValue({
-        error: axiosError.response?.data?.error ?? "Logout failed.",
-        statusCode: axiosError.response?.status ?? 500,
-        details: axiosError.response?.data?.details ?? "No Details"
-      });
+      return rejectWithValue(normalizeError(error));
     }
   }
 );

@@ -1,6 +1,6 @@
-import  axios, {
-  AxiosError,
-  type InternalAxiosRequestConfig,
+import axios, {
+    AxiosError,
+    type InternalAxiosRequestConfig,
 } from "axios";
 
 const BASE_URL = "http://localhost:8000";
@@ -48,9 +48,10 @@ axiosInstance.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        const isRefreshCall = originalRequest.url?.includes("/auth/refresh-token");
+        const isRefreshCall = originalRequest.url?.includes("/auth/refresh-access-token");
 
         if (error.response.status === 401 && !originalRequest._retry && !isRefreshCall) {
+            
             if (isRefreshing) {
                 // another request already triggered refresh — wait in line
                 return new Promise<string>((resolve, reject) => {
@@ -68,10 +69,11 @@ axiosInstance.interceptors.response.use(
                 // plain axios, not axiosInstance — refresh is public, no expired
                 // access token should be attached, only the httpOnly cookie matters
                 const { data } = await axios.post(
-                    `${BASE_URL}/api/auth/refresh-token`,
+                    `${BASE_URL}/auth/refresh-access-token`,
                     {},
                     { withCredentials: true }
                 );
+
 
                 const newAccessToken = data.accessToken;
                 localStorage.setItem("accessToken", newAccessToken);
@@ -83,7 +85,7 @@ axiosInstance.interceptors.response.use(
             } catch (refreshError) {
                 processQueue(refreshError, null);
                 localStorage.removeItem("accessToken");
-                window.location.href = "/login";
+                // window.location.href = "/auth";
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;

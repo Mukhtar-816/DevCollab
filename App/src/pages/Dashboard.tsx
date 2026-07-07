@@ -1,14 +1,16 @@
-import React from 'react'
-import NavBar from '../components/NavBar'
-import HeroSection from '../components/HeroSection'
+import { useState } from 'react';
+import AppLayout from '../components/AppLayout';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardPage = () => {
-  return (
-   <div className='flex bg-red-900 h-[100vh] w-full flex-col'>
-      <NavBar />
-      
-    </div>
-  )
-}
+  const navigate = useNavigate();
 
-export default DashboardPage
+  return (
+    <AppLayout>
+      <h1> ok 
+      </h1>
+    </AppLayout>
+  );
+};
+
+export default DashboardPage;

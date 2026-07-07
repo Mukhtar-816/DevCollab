@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const  transport  = require("../config/nodemailer");
 
 
 
@@ -51,6 +52,21 @@ const generateHash = (key) => {
     return crypto.createHash('sha256').update(key).digest('hex');
 };
 
+
+const sendMail = async ({to, subject, text="", html=""}) => {
+    try {
+        const res = await transport.sendMail({
+            from : process.env.FROM,
+            to,
+            subject,
+            text,
+            html
+        })
+    } catch (error) {
+        throw error;
+    }
+};
+
 module.exports = {
     hashPassword,
     comparePassword,
@@ -59,5 +75,6 @@ module.exports = {
     verifyToken,
     generateRandomId,
     generateHash,
-    logger
+    logger,
+    sendMail
 };

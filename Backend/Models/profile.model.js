@@ -20,6 +20,20 @@ const Profile = new mongoose.Schema(
     bio: {
       type: String,
       maxlength: 100
+    },
+    skills: {
+      type: String,
+      default: ""
+    },
+    socials: {
+      github: {
+        type: String,
+        default: ""
+      },
+      portfolio: {
+        type: String,
+        default: ""
+      }
     }
   },
   {

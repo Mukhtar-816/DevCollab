@@ -11,8 +11,8 @@ const getUserProfile = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            user: response,
-            profile : response,
+            user: response.user,
+            profile : response.profile,
             message: "Profile Fetched Successfully"
         });
 

@@ -21,6 +21,14 @@ const projectSchema = new mongoose.Schema({
         required : true,
         enum : ['private', 'public'],
         default : 'private'
+    },
+    memberCount : {
+        type : Number,
+        default : 1
+    },
+    status : {
+        type : String,
+        default : 'active',
     }
 }, {timestamps : true});
 

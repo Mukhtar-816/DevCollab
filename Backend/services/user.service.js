@@ -26,12 +26,17 @@ class UserService {
         const profile = profileDoc.toObject();
 
         return {
-            _id: profile._id,
-            email: user.email,
-            name: profile.name,
-            avatar: profile.avatar,
-            bio: profile.bio,
-            skills: profile.skills
+            user: {
+                _id : user._id,
+                email: user.email,
+            },
+            profile: {
+                _id: profile._id,
+                name: profile.name,
+                avatar: profile.avatar,
+                bio: profile.bio,
+                skills: profile.skills
+            }
         };
     };
 

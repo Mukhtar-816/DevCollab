@@ -14,6 +14,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { deleteProject, getProjectById, updateProject } from '../redux/slices/projectSlide/project.actions';
 import { useDispatch, useSelector } from 'react-redux';
 import Dropdown from '../components/Dropdown';
+import { normalizeError } from '../utils/getErrorMessage';
 
 interface Member {
   name: string;
@@ -29,7 +30,7 @@ const ProjectDetails = () => {
   const Navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { project, loading, error } = useSelector(state => state.project);
+  const { project, loading, error } = useSelector(state => state.project || []);
 
   // Local form state for settings
   const [form, setForm] = useState({
@@ -49,7 +50,7 @@ const ProjectDetails = () => {
       setForm({
         title: project.title ?? "",
         description: project.description ?? "",
-        visibility : project.visibility ?? ""
+        visibility: project.visibility ?? ""
       });
     }
   }, [project]);
@@ -76,28 +77,32 @@ const ProjectDetails = () => {
     );
   }
 
-  if (error) {
-    return (
-      <AppLayout>
-        <div className="p-6 text-red-400">{error}</div>
-      </AppLayout>
-    );
-  }
-
   const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (id) {
-      await dispatch(updateProject({ data: { id, ...form } }));
-      toast.success('Project details updated successfully.');
+      try {
+        await dispatch(updateProject({ data: { id, ...form } })).unwrap();
+        toast.success('Project details updated successfully.');
+      } catch (error) {
+        let er = normalizeError(error);
+        toast.error(er.error);
+      }
     }
+
   };
 
-  const handleDeleteProject = async (e:React.FormEvent) => {
+  const handleDeleteProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (id) {
-      await dispatch(deleteProject({id}));
-      Navigate(-1); 
-      toast.success('Project Deleted Successfully');
+      try {
+        await dispatch(deleteProject({ id })).unwrap();
+        Navigate(-1);
+        toast.success('Project Deleted Successfully');
+      } catch (error) {
+        let er = normalizeError(error);
+        toast.error(er.error);
+      }
     }
   }
 
@@ -179,37 +184,37 @@ const ProjectDetails = () => {
           {activeTab === 'settings' && (
             <div>
               <form onSubmit={handleUpdateSettings} className="space-y-6 max-w-lg">
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold text-zinc-300">General Information</h4>
-                <Input
-                  label="Project Name"
-                  value={form.title}
-                  onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-                />
-                <p className='text-xs text-neutral-400 font-semibold'>Project visibility</p>
-                 <Dropdown items={[{
-                  label: "public", onClick() {
-                    setForm(prev => ({ ...prev, visibility: 'public' }))
-                  },
-                }, {
-                  label: "private", onClick() {
-                    setForm(prev => ({ ...prev, visibility: 'private' }))
-                  },
-                }]} align='left' trigger={<div className='border-zinc-800 border bg-zinc-900 pl-3 p-2 rounded-xl'><p>{form?.visibility}</p></div>} />
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-zinc-300">General Information</h4>
+                  <Input
+                    label="Project Name"
+                    value={form.title}
+                    onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
+                  />
+                  <p className='text-xs text-neutral-400 font-semibold'>Project visibility</p>
+                  <Dropdown items={[{
+                    label: "public", onClick() {
+                      setForm(prev => ({ ...prev, visibility: 'public' }))
+                    },
+                  }, {
+                    label: "private", onClick() {
+                      setForm(prev => ({ ...prev, visibility: 'private' }))
+                    },
+                  }]} align='left' trigger={<div className='border-zinc-800 border bg-zinc-900 pl-3 p-2 rounded-xl'><p>{form?.visibility}</p></div>} />
 
-                <Textarea
-                  label="Project Description"
-                  value={form.description}
-                  onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-                />
-               
-                <Button size="sm" type="submit">Save Project Details</Button>
-              </div>
-            </form>
+                  <Textarea
+                    label="Project Description"
+                    value={form.description}
+                    onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+                  />
 
-            <div className='space-y-2 py-5'>
-              <p className='text-sm text-neutral-400 font-semibold'>Delete your project</p>
-              <Button onClick={handleDeleteProject} className='bg-red-900 hover:bg-red-800 border-red-900 focus:ring-[0px]'>Delete Project</Button>
+                  <Button size="sm" type="submit">Save Project Details</Button>
+                </div>
+              </form>
+
+              <div className='space-y-2 py-5'>
+                <p className='text-sm text-neutral-400 font-semibold'>Delete your project</p>
+                <Button onClick={handleDeleteProject} className='bg-red-900 hover:bg-red-800 border-red-900 focus:ring-[0px]'>Delete Project</Button>
               </div>
             </div>
           )}

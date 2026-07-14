@@ -19,7 +19,7 @@ class projectService {
             return project;
         }
 
-        await projectMemberDal.createProjectMember(userId, project._id);
+        await projectMemberDal.createProjectMember(userId, project._id, 'Owner');
 
         return project;
     };

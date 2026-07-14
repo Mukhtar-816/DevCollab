@@ -9,9 +9,9 @@ class projectMemberDal {
         return await ProjectMember.findOne({ userId, projectId }).lean();
     }
 
-    async createProjectMember (userId, projectId) {
+    async createProjectMember (userId, projectId, role='Guest') {
         if (!userId || !projectId) return null;
-        return await ProjectMember.create({ projectId, userId });
+        return await ProjectMember.create({ projectId, userId, role });
     };
 
     async deleteProjectMember (userId, projectId) {

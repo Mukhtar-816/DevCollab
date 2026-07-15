@@ -1,3 +1,4 @@
+const invitationService = require("../services/invitation.service.js");
 const projectService = require("../services/project.service.js");
 const CustomError = require("../utils/CustomError.js");
 
@@ -73,6 +74,26 @@ const getProjectById = async (req, res, next) => {
 };
 
 
+const inviteMember = async (req, res, next) => {
+    try {
+        const projectId = req.params?.id;
+        const {email, role} = req.body; 
+        const userEmail = req.user?.email;
+
+        if (!email || !projectId) throw new CustomError(404, "Email or Project Required To Invite Member");
+
+        const response = await invitationService.inviteMemberByEmail(email,role, projectId, userEmail);
+
+        return res.status(200).json({
+            success : true,
+            message : `Invitation send successfully to ${email}`,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
 
 
 module.exports = {
@@ -80,4 +101,5 @@ module.exports = {
     deleteProject,
     updateProject,
     getProjectById,
+    inviteMember
 };

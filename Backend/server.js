@@ -7,6 +7,7 @@ const morgan = require("morgan");
 const authRoutes = require("./Routes/auth.routes.js");
 const userRoutes = require("./Routes/user.routes.js");
 const projectRoutes = require("./Routes/project.routes.js");
+const invitationRoutes = require("./Routes/invitation.routes.js");
 const errorMiddleware = require("./middlewares/error.middleware.js");
 const cookieParser = require("cookie-parser");
 
@@ -31,6 +32,7 @@ app.use(cookieParser());
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/project", projectRoutes);
+app.use("/invitation", invitationRoutes);
 
 
 

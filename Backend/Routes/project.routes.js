@@ -14,6 +14,8 @@ Router.route("/:id")
 .put(authorizationMiddleware,requirePermission(Permission.UPDATE_PROJECT), projectController.updateProject)
 .get(authorizationMiddleware, projectController.getProjectById);
 
+Router.route("/:id/invite").post(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.inviteMember);
+
 
 
 module.exports = Router;

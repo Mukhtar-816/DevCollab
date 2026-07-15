@@ -25,7 +25,7 @@ class AuthService {
             throw new CustomError(400, "Invalid email or password");
         }
 
-        const { accessToken, refreshToken } = reusable.generateTokens({ _id: userExist._id });
+        const { accessToken, refreshToken } = reusable.generateTokens({ _id: userExist._id, email });
         await sessionService.createSession(userExist._id, refreshToken);
 
         return {
@@ -97,7 +97,7 @@ class AuthService {
             const user = await userDal.createUser({ ...userExist, isVerified: true }, dbSession);
             await profileDal.createProfile(user._id, { name: userExist.name }, dbSession);
 
-            const { accessToken, refreshToken } = reusable.generateTokens({ _id: user._id });
+            const { accessToken, refreshToken } = reusable.generateTokens({ _id: user._id, email });
             await sessionService.createSession(user._id, refreshToken);
 
             return {
@@ -128,7 +128,7 @@ class AuthService {
             throw new CustomError(403, "Token Reuse Detected, Session Revoked");
         }
 
-        const { accessToken, refreshToken: newToken } = reusable.generateTokens({ _id: _id });
+        const { accessToken, refreshToken: newToken } = reusable.generateTokens({ _id: _id, email:refreshToken?.email });
         await sessionService.createSession(_id, newToken);
 
         return {

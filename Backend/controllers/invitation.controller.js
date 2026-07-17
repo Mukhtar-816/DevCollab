@@ -37,7 +37,23 @@ const rejectInvitation = async (req, res, next) => {
     }
 };
 
+const getMyInvitations = async (req, res, next) => {
+    try {
+        const user = req.user;
+
+        const response = await invitationService.getMyInvitations(user);
+
+        return res.status(200).json({
+            success : true,
+            message : "User Invitations",
+            invitations : response
+        })
+    } catch (error) {
+        next(error);
+    }
+}
 module.exports = {
     acceptInvitation,
-    rejectInvitation
+    rejectInvitation,
+    getMyInvitations
 };

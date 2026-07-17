@@ -31,7 +31,8 @@ const ROLE_PERMISSIONS = {
   Developer: [
     Permission.CREATE_TASK,
     Permission.UPDATE_TASK,
-    Permission.COMMENT
+    Permission.COMMENT,
+    Permission.MANAGE_MEMBERS
   ],
   Tester: [
     Permission.CREATE_TASK,

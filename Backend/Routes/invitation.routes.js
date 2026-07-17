@@ -10,5 +10,6 @@ Router.route("/accept")
 Router.route("/reject")
 .post(authorizationMiddleware, invitationController.rejectInvitation);
 
+Router.route("/me").get(authorizationMiddleware, invitationController.getMyInvitations);
 
 module.exports = Router;

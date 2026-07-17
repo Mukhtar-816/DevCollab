@@ -18,6 +18,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import Loading from "../components/Loading";
 import { useSelector } from "react-redux";
+import Invitation from "../pages/Invitation";
 
 const MainNavigation = () => {
   const { isAuthChecked } = useSelector((state: any) => state.auth);
@@ -44,6 +45,7 @@ const MainNavigation = () => {
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/invitations" element={<ProtectedRoute><Invitation/></ProtectedRoute>}/>
 
         {/* Fallback 404 Route */}
         <Route path="*" element={<NotFound />} />

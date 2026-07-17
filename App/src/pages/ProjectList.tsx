@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import AppLayout from '../components/AppLayout';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -9,13 +9,14 @@ import CustomModal from '../components/CustomModal';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
 import EmptyState from '../components/EmptyState';
-import { Plus, Grid, List, FolderGit2, Users, Cross } from 'lucide-react';
+import { Plus, Grid, List, FolderGit2, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { createProject, getUserProjects } from '../redux/slices/projectSlide/project.actions';
 import { normalizeError } from '../utils/getErrorMessage';
 import { useNavigate } from 'react-router-dom';
 import Dropdown from '../components/Dropdown';
+import Tabs from '../components/Tabs';
 
 interface Project {
   _id: string;
@@ -29,8 +30,8 @@ interface Project {
 // Sub-Components
 // ==========================================
 
-const ProjectGridCard = ({ proj, ...props }: { proj: Project }) => (
-  <Card onClick={props?.onClick} className="hoverable flex flex-col justify-between" padding="md">
+const ProjectGridCard = React.memo(({ proj, onClick }: { proj: Project; onClick: () => void }) => (
+  <Card onClick={onClick} className="hoverable flex flex-col justify-between" padding="md">
     <div className="space-y-3.5">
       <div className="flex items-start justify-between">
         <Badge variant="success" size="sm">
@@ -56,10 +57,11 @@ const ProjectGridCard = ({ proj, ...props }: { proj: Project }) => (
       </span>
     </div>
   </Card>
-);
+));
+ProjectGridCard.displayName = 'ProjectGridCard';
 
-const ProjectListRow = ({ proj, ...props }: { proj: Project }) => (
-  <Card onClick={props?.onClick} className="hoverable flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" padding="sm">
+const ProjectListRow = React.memo(({ proj, onClick }: { proj: Project; onClick: () => void }) => (
+  <Card onClick={onClick} className="hoverable flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" padding="sm">
     <div className="flex items-center gap-4 flex-1">
       <div className="p-3 bg-zinc-900 border border-zinc-850 rounded-xl hidden sm:block text-zinc-400">
         <FolderGit2 className="h-5 w-5" />
@@ -82,50 +84,66 @@ const ProjectListRow = ({ proj, ...props }: { proj: Project }) => (
       </span>
     </div>
   </Card>
-);
+));
+ProjectListRow.displayName = 'ProjectListRow';
 
 // ==========================================
 // Main Component
 // ==========================================
 
 const ProjectList = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const dispatch = useDispatch<any>();
+  const navigate = useNavigate();
+
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [createOpen, setCreateOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [projectType, setProjectType] = useState('all');
 
-  const [formData, setFormData] = useState({ title: '', description: '', visibility: 'private' });
-
-  const filteredProjects = projects.filter(p =>
-    p.title?.toLowerCase().includes(search.toLowerCase()) ||
-    p.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  const defaultFormState = { title: '', label: 'my-projects', description: '', visibility: 'private' };
+  const [formData, setFormData] = useState(defaultFormState);
 
   const { user } = useSelector((state: any) => state.user);
-  const { projects: userProjects } = useSelector((state: any) => state.project);
-  const dispatch = useDispatch();
-  const Navigate = useNavigate();
+  const { projects: userProjects = [] } = useSelector((state: any) => state.project || {});
 
+  // Fetch initial project dataset
   useEffect(() => {
+    if (!user?._id) return;
     const fetchProjects = async () => {
-      if (!user?._id) return;
       try {
         await dispatch(getUserProjects({ userId: user._id })).unwrap();
       } catch (error: any) {
-        let err = normalizeError(error);
+        const err = normalizeError(error);
         toast.error(err.error);
       }
     };
-
     fetchProjects();
   }, [dispatch, user?._id]);
 
-  useEffect(() => {
-    if (userProjects) {
-      setProjects(userProjects);
+  // Read filtered projects directly from store without double-state synching mechanics
+ // Read and filter projects directly based on search AND the active tab
+const filteredProjects = useMemo(() => {
+  return userProjects.filter((p: any) => {
+    // 1. First, apply your text search filter
+    const matchesSearch = 
+      p.title?.toLowerCase().includes(search.toLowerCase()) ||
+      p.description?.toLowerCase().includes(search.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // 2. Next, apply your Tab filter logic
+    if (projectType === 'my') {
+      return p.ownerId === user?._id; // Adjust 'ownerId' based on your backend schema
     }
-  }, [userProjects]);
+    if (projectType === 'other') {
+      return p.ownerId !== user?._id;
+    }
+
+    return true; // 'all' tab returns everything that matches search
+  });
+}, [userProjects, search, projectType, user?._id]);
+
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,19 +153,13 @@ const ProjectList = () => {
     }
 
     try {
-      const res = await dispatch(createProject({ data: formData })).unwrap();
+      await dispatch(createProject({ data: formData })).unwrap();
       toast.success("Project Created Successfully");
-      let newProject = res.project;
-
-      if (newProject) {
-        setProjects(prev => [...prev, newProject]);
-      }
-    } catch (error) {
-      let err = normalizeError(error);
-      toast.error(err.error);
-    } finally {
       setCreateOpen(false);
-      setFormData({ title: '', description: '', visibility : 'private' });
+      setFormData(defaultFormState);
+    } catch (error) {
+      const err = normalizeError(error);
+      toast.error(err.error);
     }
   };
 
@@ -195,17 +207,25 @@ const ProjectList = () => {
         </div>
       </div>
 
+      <div className="mt-4">
+        <Tabs 
+          activeTab={projectType} 
+          onChange={(id) => setProjectType(id)} 
+          tabs={[{id:'all', label:'All'}, {id:'my', label:'My Projects'}, {id:'other', label:'Collaborated Projects'}]}
+        />
+      </div>
+
       {filteredProjects.length > 0 ? (
         viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
-            {filteredProjects.map((proj) => (
-              <ProjectGridCard onClick={() => Navigate(`${proj?._id}`)} key={proj._id} proj={proj} />
+            {filteredProjects.map((proj: Project) => (
+              <ProjectGridCard onClick={() => navigate(`${proj._id}`)} key={proj._id} proj={proj} />
             ))}
           </div>
         ) : (
           <div className="flex flex-col gap-3 mt-6">
-            {filteredProjects.map((proj) => (
-              <ProjectListRow onClick={() => Navigate(`${proj?._id}`)} key={proj._id} proj={proj} />
+            {filteredProjects.map((proj: Project) => (
+              <ProjectListRow onClick={() => navigate(`${proj._id}`)} key={proj._id} proj={proj} />
             ))}
           </div>
         )
@@ -242,16 +262,21 @@ const ProjectList = () => {
             required
           />
 
-
-          <Dropdown items={[{
-            label: "public", onClick() {
-              setFormData(prev => ({ ...prev, visibility: 'public' }))
-            },
-          }, {
-            label: "private", onClick() {
-              setFormData(prev => ({ ...prev, visibility: 'private' }))
-            },
-          }]} align='left' trigger={<div className='border-zinc-800 border bg-zinc-900 pl-3 p-2 rounded-xl'><p>{formData?.visibility}</p></div>} />
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-zinc-400">Visibility</span>
+            <Dropdown 
+              items={[
+                { label: "public", onClick: () => setFormData(prev => ({ ...prev, visibility: 'public' })) }, 
+                { label: "private", onClick: () => setFormData(prev => ({ ...prev, visibility: 'private' })) }
+              ]} 
+              align='left' 
+              trigger={
+                <div className='border-zinc-800 border bg-zinc-900 pl-3 p-2 rounded-xl cursor-pointer hover:border-zinc-700 transition-colors'>
+                  <p className="text-sm text-zinc-200 capitalize">{formData.visibility}</p>
+                </div>
+              } 
+            />
+          </div>
 
           <Textarea
             label="Description"

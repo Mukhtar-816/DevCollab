@@ -16,11 +16,17 @@ class invitationDal {
 
         return await invitation.create(object);
     }
-    
+
     async updateInvitationStatus(query, status) {
         if (!query || !['accepted', 'rejected', 'expired'].includes(status)) return null;
 
-        return await invitation.findOneAndUpdate(query, {"$set" : { status : status}}, {runValidators:true, returnDocument:'after'}).lean();
+        return await invitation.findOneAndUpdate(query, { "$set": { status: status } }, { runValidators: true, returnDocument: 'after' }).lean();
+    }
+
+    async getInvitations(key, value) {
+        if (!key || !value) return null;
+
+        return await invitation.find({ [key]:value, status: 'pending' }).lean();
     }
 
 

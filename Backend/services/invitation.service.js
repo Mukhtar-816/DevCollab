@@ -55,6 +55,7 @@ class invitationService {
         await projectMemberDal.createProjectMember({
             projectId : invitation.projectId,
             userId : user._id,
+            email : user.email,
             role : invitation.role
         });
 
@@ -71,6 +72,15 @@ class invitationService {
         await invitationDal.updateInvitationStatus({token, invitedEmail:user.email}, 'rejected');
 
         return true;
+    };
+
+
+    async getMyInvitations (user) {
+        const invitations = await invitationDal.getInvitations('invitedEmail',user.email);
+
+        if (invitations?.length == 0) return [];
+
+        return invitations;
     }
 };
 

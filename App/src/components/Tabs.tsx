@@ -20,7 +20,7 @@ export const Tabs: React.FC<TabsProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex border-b border-zinc-900 gap-1 overflow-x-auto no-scrollbar ${className}`}>
+    <div className={`flex border-b border-zinc-900 gap-1 overflow-x-auto no-scrollbar ${className} overflow-y-hidden`}>
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
         return (

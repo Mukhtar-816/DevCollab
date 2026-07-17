@@ -10,12 +10,17 @@ const { Permission } = require("../constants/permission.js");
 Router.route("/create").post(authorizationMiddleware, projectController.createProject);
 
 Router.route("/:id")
-.delete(authorizationMiddleware, requirePermission(Permission.DELETE_PROJECT), projectController.deleteProject)
-.put(authorizationMiddleware,requirePermission(Permission.UPDATE_PROJECT), projectController.updateProject)
-.get(authorizationMiddleware, projectController.getProjectById);
+    .delete(authorizationMiddleware, requirePermission(Permission.DELETE_PROJECT), projectController.deleteProject)
+    .put(authorizationMiddleware, requirePermission(Permission.UPDATE_PROJECT), projectController.updateProject)
+    .get(authorizationMiddleware, projectController.getProjectById);
 
-Router.route("/:id/invite").post(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.inviteMember);
+Router.route("/:id/invitations")
+    .get(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.getProjectInvitations)
+    .post(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.inviteMember)
+    .delete(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.removeProjectInvitation);
 
-
+Router.route("/:id/members")
+    .get(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.getProjectMembers)
+    .delete(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.removeProjectMember);
 
 module.exports = Router;

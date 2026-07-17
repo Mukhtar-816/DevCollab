@@ -1,3 +1,4 @@
+const invitationDal = require("../DAL/invitation.dal");
 const projectDal = require("../DAL/project.dal");
 const projectMemberDal = require("../DAL/projectMember.dal");
 const CustomError = require("../utils/CustomError");
@@ -6,20 +7,19 @@ class projectService {
     constructor() { };
 
 
-    async createProject(userId, data) {
-        if (!userId || !data) throw new CustomError(500, "Invalid Data");
+    async createProject(user, data) {
+        if (!user._id || !user.email || !data) throw new CustomError(500, "Invalid Data");
 
-        const project = await projectDal.createProject(userId, data);
+        const project = await projectDal.createProject(user._id, data);
 
         if (!project) throw new CustomError(400, "Error Creating Project");
 
-        const isAlreadyMember = await projectMemberDal.getProjectMember(userId, project._id);
+        const isAlreadyMember = await projectMemberDal.getProjectMember(user._id, project._id);
 
         if (isAlreadyMember) {
             return project;
         }
-
-        await projectMemberDal.createProjectMember(userId, project._id, 'Owner');
+        await projectMemberDal.createProjectMember(user._id, user.email, project._id, 'Owner');
 
         return project;
     };
@@ -69,10 +69,30 @@ class projectService {
     async getProjectById(userId, projectId) {
         const project = await projectDal.getProjectByKey('_id', projectId);
 
-        if (project?.visibility == 'private' && project?.ownerId != userId) throw new CustomError(403, "Forbidden");
-
+        if (project?.visibility === 'private') {
+            const isMember = await projectMemberDal.getProjectMember(userId, projectId);
+            if (project?.ownerId != userId && !isMember) {
+                throw new CustomError(403, "Forbidden");
+            }
+        }
         return project;
     };
+
+    async getProjectMembers(projectId) {
+        if (!projectId) throw new CustomError(404, "Project ID is required");
+
+        const projectMembers = await projectMemberDal.getProjectMembers(projectId);
+
+        return projectMembers;
+    }
+
+    async getProjectInvitations(projectId) {
+        if (!projectId) throw new CustomError(404, "Project ID is required");
+
+        const projectInvitations = await invitationDal.getInvitations('projectId',projectId);
+
+        return projectInvitations;
+    }
 };
 
 

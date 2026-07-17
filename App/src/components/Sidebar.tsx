@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  Home, Folder, CheckSquare, MessageSquare, Bell, 
-  Settings, CreditCard, ChevronLeft, ChevronRight, 
-  Command, LogOut, User, 
-  User2
+import {
+  Home, Folder, CheckSquare, MessageSquare, Bell,
+  Settings, CreditCard, ChevronLeft, ChevronRight,
+  Command, LogOut, User,
+  User2,
+  UserRoundArrowLeft
 } from 'lucide-react';
 import { logout } from '../redux/slices/authSlice/auth.actions';
 import Avatar from './Avatar';
@@ -34,10 +35,12 @@ export const Sidebar: React.FC = () => {
   const menuItems = [
     { to: '/dashboard', label: 'Dashboard', icon: <Home className="h-5 w-5" /> },
     { to: '/projects', label: 'Projects', icon: <Folder className="h-5 w-5" /> },
+    { to: '/invitations', label: 'Invitations', icon: <UserRoundArrowLeft className="h-5 w-5" /> },
     { to: '/profile', label: 'Profile', icon: <User2 className="h-5 w-5" /> },
     { to: '/notifications', label: 'Notifications', icon: <Bell className="h-5 w-5" /> },
     { to: '/pricing', label: 'Pricing Plans', icon: <CreditCard className="h-5 w-5" /> },
     { to: '/settings', label: 'Settings', icon: <Settings className="h-5 w-5" /> },
+
   ];
 
   const userDropdownItems = [
@@ -114,13 +117,13 @@ export const Sidebar: React.FC = () => {
         <nav className="flex flex-col overflow-y-auto px-3 space-y-1 py-1 no-scrollbar">
           {menuItems.map((item) => (
             <NavLink
-            // onClick={() => setIsCollapsed(true)}
+              // onClick={() => setIsCollapsed(true)}
               key={item.to}
               to={item.to}
               className={({ isActive }) => `
                 flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200
-                ${isActive 
-                  ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/15 font-bold' 
+                ${isActive
+                  ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/15 font-bold'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60 border border-transparent'
                 }
                 ${isCollapsed ? 'justify-center' : ''}

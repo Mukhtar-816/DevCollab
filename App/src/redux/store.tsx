@@ -4,6 +4,7 @@ import userReducer from "./slices/userSlice/user.slice";
 import projectReducer from "./slices/projectSlide/project.slice";
 import projectMemberReducer from "./slices/memberSlice/member.slice";
 import invitationReducer from "./slices/invitationSlice/invitation.slice"
+import projectTaskReducer from "./slices/taskSlice/task.slice"
 
 
 export const store = configureStore({
@@ -12,7 +13,8 @@ export const store = configureStore({
         user: userReducer,
         project : projectReducer,
         projectMembers : projectMemberReducer,
-        invitations : invitationReducer
+        invitations : invitationReducer,
+        projectTasks : projectTaskReducer
     },
 });
 

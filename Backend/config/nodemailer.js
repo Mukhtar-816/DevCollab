@@ -20,6 +20,6 @@ async function checkTransport (){
     }
 };
 
-checkTransport();
+// checkTransport();
 
 module.exports = transport;

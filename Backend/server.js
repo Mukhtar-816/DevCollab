@@ -1,6 +1,6 @@
 const express = require("express");
-const { logger } = require("./utils/reusable");
-const connectDB = require("./config/db");
+const { logger } = require("./utils/reusable.js");
+const connectDB = require("./config/db.js");
 const cors = require("cors");
 require("dotenv").config();
 const morgan = require("morgan");
@@ -8,6 +8,7 @@ const authRoutes = require("./Routes/auth.routes.js");
 const userRoutes = require("./Routes/user.routes.js");
 const projectRoutes = require("./Routes/project.routes.js");
 const invitationRoutes = require("./Routes/invitation.routes.js");
+const taskRoutes = require("./Routes/task.routes.js");
 const errorMiddleware = require("./middlewares/error.middleware.js");
 const cookieParser = require("cookie-parser");
 
@@ -33,6 +34,7 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/project", projectRoutes);
 app.use("/invitation", invitationRoutes);
+app.use("/project", taskRoutes);
 
 
 

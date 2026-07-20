@@ -1,11 +1,11 @@
 const taskDal = require("../DAL/task.dal");
 const CustomError = require("../utils/CustomError");
 
-class taskService  {
-    constructor() {};
+class taskService {
+    constructor() { };
 
 
-    async createTask (reporterId, projectId, projectData) {
+    async createTask(reporterId, projectId, projectData) {
         if (!reporterId || !projectId || Object.entries(projectData)?.length == 0) throw new CustomError(400, "Required Details Missing");
 
         if (projectData?.assigneesId?.length == 0) throw new CustomError(400, "Task must be assigned to atleast one member");
@@ -17,12 +17,12 @@ class taskService  {
         const createdTask = await taskDal.createTask({
             projectId,
             reporterId,
-            title : projectData?.title,
-            description : projectData?.description,
-            status : projectData?.status,
-            priority : projectData?.priority || 'medium',
-            dueDate : projectData?.dueDate || null,
-            assigneesId : projectData?.assigneesId
+            title: projectData?.title,
+            description: projectData?.description,
+            status: projectData?.status,
+            priority: projectData?.priority || 'medium',
+            dueDate: projectData?.dueDate || null,
+            assigneesId: projectData?.assigneesId
         });
 
         if (!createdTask) throw new CustomError(400, "Error Creating Task");
@@ -39,6 +39,56 @@ class taskService  {
         if (!tasks) return [];
 
         return tasks;
+    };
+
+    async getTask(projectId, taskId) {
+        if (!projectId || !taskId) throw new CustomError(400, "ProjectId or TaskId is required");
+
+        const task = await taskDal.getTaskByKey({ projectId, _id: taskId });
+
+        if (!task) throw new CustomError(404, "Task not found"); 
+
+        return task;
+    };
+
+   async updateTask(projectId, taskId, updatedData) {
+    if (!projectId || !taskId) throw new CustomError(400, "ProjectId or TaskId is required");
+
+    let updates = {};
+    let updateExist = false;
+
+    Object.entries(updatedData).forEach(([key, value]) => {
+        if (value !== undefined && (typeof value !== 'string' || value.trim().length !== 0)) {
+            updates[key] = value;
+            updateExist = true;
+        }
+    });
+
+    if (!updateExist) throw new CustomError(400, "No valid fields provided for update");
+
+    const updatedTask = await taskDal.updateTask({ projectId, _id: taskId }, updates);
+    if (!updatedTask) throw new CustomError(404, "Task not found");
+
+    return updatedTask;
+}
+
+
+    async deleteTask(projectId, taskId) {
+        if (!projectId || !taskId) throw new CustomError(400, "ProjectId or TaskId is required");
+
+        await taskDal.deleteTask({ projectId, _id: taskId });
+
+        return true;
+    };
+
+    async updateTaskStatus(projectId, taskId, status) {
+        if (!projectId || !taskId) throw new CustomError(400, "ProjectId or TaskId is required");
+
+        if (!['in-progress', 'completed', 'to-do'].includes(status?.toLowerCase())) throw new CustomError(400, "Invalid Status Update");
+
+        const updatedTask = await taskDal.updateTask({ projectId, _id: taskId }, { status: status });
+
+        return updatedTask;
     }
 }
 

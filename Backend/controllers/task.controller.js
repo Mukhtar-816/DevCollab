@@ -35,8 +35,82 @@ const getProjectTasks = async (req, res, next) => {
     }
 };
 
+const getTask = async (req, res, next) => {
+    try {
+        const projectId = req.params?.id;
+        const taskId = req.params?.taskId;
+
+        const response = await taskService.getTask(projectId, taskId);
+
+        return res.status(200).json({
+            success : true,
+            messgae : "Task details fetched successfully",
+            task : response
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateTask = async (req, res, next) => {
+    try {
+        const projectId = req.params?.id;
+        const taskId = req.params?.taskId;
+        const {...data} = req.body;
+
+        const response = await taskService.updateTask(projectId, taskId, data);
+
+        return res.status(200).json({
+            success : true,
+            messgae : "Task updated successfully",
+            task : response
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+const updateTaskStatus = async (req, res, next) => {
+    try {
+        const projectId = req.params?.id;
+        const taskId = req.params?.taskId;
+        const status = req.body?.status;
+
+        const response = await taskService.updateTaskStatus(projectId, taskId, status);
+
+        return res.status(200).json({
+            success : true,
+            messgae : "Task status updated successfully",
+            task : response
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+const deleteTask = async (req, res, next) => {
+    try {
+        const projectId = req.params?.id;
+        const taskId = req.params?.taskId;
+
+        const response = await taskService.deleteTask(projectId, taskId);
+
+        return res.status(200).json({
+            success : true,
+            messgae : "Task deleted successfully",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
 
 module.exports = {
     createProjectTask,
-    getProjectTasks
+    getProjectTasks,
+    getTask,
+    updateTask,
+    deleteTask,
+    updateTaskStatus
 };

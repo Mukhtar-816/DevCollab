@@ -8,6 +8,7 @@ class invitationService {
     constructor() { };
 
     async inviteMemberByEmail(invitedEmail, role, projectId, userEmail) {
+        if (!invitedEmail || !role || !projectId || !userEmail) throw new CustomError(400, "Missing Data Required");
         if (invitedEmail.toLowerCase() === userEmail.toLowerCase()) {
             throw new CustomError(400, "You cannot invite yourself to this project");
         };
@@ -37,9 +38,9 @@ class invitationService {
 
         if (!invitation) throw new CustomError(400, "Error Creating Invitation");
 
-        // await reusable.sendMail({to, subject:"Invitation to Project on DevCollab", body:`You have been invited as ${role} in the project ${projectId}. You can join by clicking the link within 7 days, Link:http://localhost:5173/invite?token=${token}`});
+        await reusable.sendMail({to:invitedEmail, subject:"Invitation to Project on DevCollab", body:`You have been invited as ${role} in the project ${projectId}. You can join by clicking the link within 7 days, Link:http://localhost:5173/invitations`});
 
-        return;
+        return invitation;
     };
 
 
@@ -56,7 +57,7 @@ class invitationService {
             projectId : invitation.projectId,
             userId : user._id,
             email : user.email,
-            role : invitation.role
+            role : invitation.role || 'Guest'
         });
 
         return true;

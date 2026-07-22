@@ -17,9 +17,9 @@ export const getProjectInvitations = createAsyncThunk(
 
 export const inviteMemberByMail = createAsyncThunk(
     'project/inviteMember',
-    async ({email, id}, {rejectWithValue}) => {
+    async ({email, role, id}, {rejectWithValue}) => {
         try {
-            const res = await axiosInstance.post(`/project/${id}/invitations`, {email});
+            const res = await axiosInstance.post(`/project/${id}/invitations`, {email, role});
 
             return res.data;
         } catch (error) {

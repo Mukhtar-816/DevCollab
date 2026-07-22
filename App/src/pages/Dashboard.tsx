@@ -7,7 +7,7 @@ const DashboardPage = () => {
 
   return (
     <AppLayout>
-      <h1> ok 
+      <h1> Dashboard 
       </h1>
     </AppLayout>
   );

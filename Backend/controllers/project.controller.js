@@ -78,15 +78,16 @@ const inviteMember = async (req, res, next) => {
     try {
         const projectId = req.params?.id;
         const { email, role } = req.body;
-        const userEmail = req.user?.email;
+        const userEmail = req.projectMember?.email;
 
-        if (!email || !projectId) throw new CustomError(400, "Email or Project Required To Invite Member");
+        if (!email || !projectId || !role) throw new CustomError(400, "Email or Project Required To Invite Member");
 
         const response = await invitationService.inviteMemberByEmail(email, role, projectId, userEmail);
 
         return res.status(200).json({
             success: true,
             message: `Invitation send successfully to ${email}`,
+            invitation : response
         });
     } catch (error) {
         next(error);

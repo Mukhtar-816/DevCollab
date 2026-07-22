@@ -75,7 +75,7 @@ const Invitation = () => {
 
   useEffect(() => {
     getInvitations();
-  }, [getInvitations, success]);
+  }, [dispatch]);
 
   const handleJoin = useCallback(async (currentInvitation: InvitationType) => {
     if (!currentInvitation?.projectId || !currentInvitation?.token) return;

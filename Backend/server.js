@@ -9,6 +9,7 @@ const userRoutes = require("./Routes/user.routes.js");
 const projectRoutes = require("./Routes/project.routes.js");
 const invitationRoutes = require("./Routes/invitation.routes.js");
 const taskRoutes = require("./Routes/task.routes.js");
+const commentRoutes = require("./Routes/comment.routes.js");
 const errorMiddleware = require("./middlewares/error.middleware.js");
 const cookieParser = require("cookie-parser");
 
@@ -35,6 +36,7 @@ app.use("/user", userRoutes);
 app.use("/project", projectRoutes);
 app.use("/invitation", invitationRoutes);
 app.use("/project", taskRoutes);
+app.use("/project", commentRoutes);
 
 
 

@@ -19,7 +19,13 @@ class projectService {
         if (isAlreadyMember) {
             return project;
         }
-        await projectMemberDal.createProjectMember(user._id, user.email, project._id, 'Owner');
+        const memberAdded = await projectMemberDal.createProjectMember({
+            projectId : project._id,
+            userId : user._id,
+            email : user.email,
+            role : 'Owner'
+        });
+        if (!memberAdded) throw new CustomError(400, "Project Owner didn't become owner");
 
         return project;
     };

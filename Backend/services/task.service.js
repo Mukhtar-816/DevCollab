@@ -1,5 +1,6 @@
 const taskDal = require("../DAL/task.dal");
 const CustomError = require("../utils/CustomError");
+const eventBus = require("../events/log.event")
 
 class taskService {
     constructor() { };
@@ -26,6 +27,14 @@ class taskService {
         });
 
         if (!createdTask) throw new CustomError(400, "Error Creating Task");
+
+         eventBus.emit('activity:log', {
+            projectId,
+            actorId : reporterId,
+            action : 'TASK_CREATED',
+            targetType : 'TASK',
+            targetId : createdTask._id
+        });
 
         return createdTask;
     };
@@ -68,6 +77,15 @@ class taskService {
 
     const updatedTask = await taskDal.updateTask({ projectId, _id: taskId }, updates);
     if (!updatedTask) throw new CustomError(404, "Task not found");
+
+      eventBus.emit('activity:log', {
+            projectId,
+            actorId : updatedTask?.reporterId,
+            action : 'TASK_UPDATED',
+            targetType : 'TASK',
+            targetId : updatedTask._id
+        });
+    
 
     return updatedTask;
 }

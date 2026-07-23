@@ -6,7 +6,8 @@ const Permission = Object.freeze({
   UPDATE_TASK: 'task:update',
   DELETE_TASK: 'task:update',
   READ_TASK: 'task:read',
-  COMMENT: 'task:comment'
+  COMMENT: 'task:comment',
+  MEMEBR: 'project:member'
 });
 
 const ROLE_PERMISSIONS = {
@@ -18,6 +19,7 @@ const ROLE_PERMISSIONS = {
     Permission.UPDATE_TASK,
     Permission.DELETE_TASK,
     Permission.COMMENT,
+    Permission.MEMEBR,
     Permission.READ_TASK
   ],
   Admin: [
@@ -27,22 +29,26 @@ const ROLE_PERMISSIONS = {
     Permission.UPDATE_TASK,
     Permission.DELETE_TASK,
     Permission.COMMENT,
+    Permission.MEMEBR,
     Permission.READ_TASK
   ],
   PM: [
     Permission.CREATE_TASK,
     Permission.COMMENT,
+    Permission.MEMEBR,
     Permission.READ_TASK
   ],
   Developer: [
     Permission.CREATE_TASK,
     Permission.COMMENT,
+    Permission.MEMEBR,
     Permission.READ_TASK,
     Permission.MANAGE_MEMBERS
   ],
   Tester: [
     Permission.CREATE_TASK,
     Permission.COMMENT,
+    Permission.MEMEBR,
     Permission.READ_TASK
   ],
   Guest: [] // Read-only

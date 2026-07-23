@@ -2,6 +2,8 @@ const invitationDal = require("../DAL/invitation.dal");
 const projectDal = require("../DAL/project.dal");
 const projectMemberDal = require("../DAL/projectMember.dal");
 const CustomError = require("../utils/CustomError");
+const eventBus = require("../events/log.event");
+const activityLogDal = require("../DAL/activitylog.dal");
 
 class projectService {
     constructor() { };
@@ -20,10 +22,10 @@ class projectService {
             return project;
         }
         const memberAdded = await projectMemberDal.createProjectMember({
-            projectId : project._id,
-            userId : user._id,
-            email : user.email,
-            role : 'Owner'
+            projectId: project._id,
+            userId: user._id,
+            email: user.email,
+            role: 'Owner'
         });
         if (!memberAdded) throw new CustomError(400, "Project Owner didn't become owner");
 
@@ -69,6 +71,14 @@ class projectService {
             throw new CustomError(500, "Failed to update project. Please try again.");
         }
 
+        eventBus.emit('activity:log', {
+            projectId: updatedProject._id,
+            actorId: userId,
+            action: 'PROJECT_UPDATED',
+            targetType: 'PROJECT',
+            targetId: updatedProject._id
+        });
+
         return updatedProject;
     }
 
@@ -95,11 +105,37 @@ class projectService {
     async getProjectInvitations(projectId) {
         if (!projectId) throw new CustomError(404, "Project ID is required");
 
-        const projectInvitations = await invitationDal.getInvitations('projectId',projectId);
+        const projectInvitations = await invitationDal.getInvitations('projectId', projectId);
 
         return projectInvitations;
     }
-};
+
+    async getProjectLogs(projectId, queryOptions) {
+        if (!projectId) throw new CustomError(404, "Project ID is required");
+
+        const page = parseInt(queryOptions.page, 10) || 1;
+        const limit = parseInt(queryOptions.limit, 10) || 20;
+        const skip = (page - 1) * limit;
+
+        // Execute DAL queries
+        const [logs, total] = await Promise.all([
+            activityLogDal.findLogsByProjectId(projectId, { skip, limit }),
+            activityLogDal.countLogsByProjectId(projectId),
+        ]);
+        const totalPages = Math.ceil(total / limit);
+        return {
+            logs,
+            pagination: {
+                totalItems: total,
+                currentPage: page,
+                totalPages: totalPages,
+                pageSize: limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+
+        }}
+    };
 
 
 

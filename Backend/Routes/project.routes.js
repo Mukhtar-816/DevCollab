@@ -23,4 +23,7 @@ Router.route("/:id/members")
     .get(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.getProjectMembers)
     .delete(authorizationMiddleware, requirePermission(Permission.MANAGE_MEMBERS), projectController.removeProjectMember);
 
+Router.route("/:id/activity-logs")
+.get(authorizationMiddleware, requirePermission(Permission.MEMEBR), projectController.getActivityLogs);    
+
 module.exports = Router;

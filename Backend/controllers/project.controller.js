@@ -7,7 +7,7 @@ const createProject = async (req, res, next) => {
         const { ...data } = req.body;
         const user = req.user;
 
-        if(!data || Object.keys(data).length === 0) throw new CustomError(400, "Invalid data values");
+        if (!data || Object.keys(data).length === 0) throw new CustomError(400, "Invalid data values");
 
         const response = await projectService.createProject(user, data);
 
@@ -87,7 +87,7 @@ const inviteMember = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: `Invitation send successfully to ${email}`,
-            invitation : response
+            invitation: response
         });
     } catch (error) {
         next(error);
@@ -160,6 +160,23 @@ const removeProjectInvitation = async (req, res, next) => {
     }
 };
 
+const getActivityLogs = async (req, res, next) => {
+    try {
+        const projectId = req.params?.id;
+
+        const response = await projectService.getProjectLogs(projectId, req.query);
+
+        return res.status(200).json({
+            success: true,
+            message: "Logs Fetched Successfully",
+            logs: response.logs,
+            pagination: response.pagination,
+        })
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 
 
@@ -172,5 +189,6 @@ module.exports = {
     getProjectInvitations,
     getProjectMembers,
     removeProjectInvitation,
-    removeProjectMember
+    removeProjectMember,
+    getActivityLogs
 };

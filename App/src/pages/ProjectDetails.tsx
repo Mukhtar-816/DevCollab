@@ -28,6 +28,8 @@ import { getProjectMembers } from '../redux/slices/memberSlice/member.actions';
 import { getProjectInvitations, inviteMemberByMail } from '../redux/slices/invitationSlice/invitation.actions';
 import { createTask, deleteTask, getProjectTasks, getTaskDetails, updateTask } from '../redux/slices/taskSlice/task.actions';
 import { deleteComment, getTaskComments, postComment, updateComment } from '../redux/slices/commentSlice/comment.actions';
+import { getProjectActivityLogs } from '../redux/slices/activityLogSlice/activityLog.actions';
+import { setPage } from '../redux/slices/activityLogSlice/activityLog.slice';
 
 const ProjectDetails = () => {
   const params = useParams();
@@ -42,6 +44,7 @@ const ProjectDetails = () => {
   const { tasks, task: reduxTask, loading: taskLoading } = useSelector((state: any) => state.projectTasks || {});
   const { comments, loading: commentLoading } = useSelector((state: any) => state.projectTaskComments || {});
   const { user } = useSelector((state: any) => state.user || {});
+  const { logs, loading:activityLoading, pagination} = useSelector((state:any) => state.projectActivityLogs || {});
 
   // UI Navigation & Filtering State
   const [activeTab, setActiveTab] = useState('overview');
@@ -105,6 +108,8 @@ const ProjectDetails = () => {
         if (!members || members.length === 0) {
           dispatch(getProjectMembers({ id }));
         }
+      } else if (activeTab == 'activity') {
+        dispatch(getProjectActivityLogs({projectId:id}));
       } else {
         dispatch(getProjectMembers({ id }));
         dispatch(getProjectInvitations({ id }));
@@ -134,8 +139,19 @@ const ProjectDetails = () => {
     { id: 'overview', label: 'Overview', icon: <FolderGit2 className="h-4 w-4" /> },
     { id: 'members', label: 'Members', icon: <Users className="h-4 w-4" /> },
     { id: 'tasks', label: 'Tasks', icon: <PackageCheck className="h-4 w-4" /> },
+    { id: 'activity', label: 'Activity Logs', icon: <Activity className="h-4 w-4" /> }, // New Tab
     { id: 'settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
   ];
+
+  const handleLoadMore = () => {
+  if (pagination?.hasNextPage && !activityLoading) {
+    const nextPage = (pagination.currentPage || pagination.page || 1) + 1;
+    // 1. Update page number in Redux state
+    dispatch(setPage(nextPage));
+    // 2. Fetch logs for the new page
+    dispatch(getProjectActivityLogs({projectId:id}));
+  }
+};
 
   const breadcrumbs = [
     { label: 'Projects', to: '/projects' },
@@ -528,6 +544,77 @@ const ProjectDetails = () => {
                     ));
                   })()}
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'activity' && (
+              <div className="w-full space-y-6 max-w-4xl">
+                <div className="flex items-center justify-between border-b border-zinc-900 pb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                      Workspace Activity Stream
+                    </h3>
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      Audit trail of actions and events inside this project.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Initial Loading Skeleton */}
+                {activityLoading && (!logs || logs.length === 0) ? (
+                  <div className="flex items-center justify-center p-12 gap-2 text-xs text-zinc-400">
+                    <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
+                    <span>Fetching activity feed...</span>
+                  </div>
+                ) : !logs || logs.length === 0 ? (
+                  /* Empty State */
+                  <div className="border border-dashed border-zinc-900 rounded-xl p-10 text-center text-xs text-zinc-500">
+                    No recent activity recorded for this workspace.
+                  </div>
+                ) : (
+                  /* Vertical Activity Timeline Feed */
+                  <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-zinc-900">
+                    {logs.map((log: any) => (
+                      <div key={log._id} className="relative flex items-start gap-4 text-xs">
+                        {/* Timeline Dot Indicator */}
+                        <div className="absolute -left-6 top-1 h-5 w-5 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                          <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                        </div>
+
+                        {/* Log Body */}
+                        <div className="flex-1 bg-zinc-950/60 border border-zinc-900 rounded-xl p-4 space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-zinc-200">
+                              {log.actorId?.email || 'System'}
+                            </span>
+                            <span className="text-[10px] text-zinc-500">
+                              {log.createdAt ? new Date(log.createdAt).toLocaleString() : ''}
+                            </span>
+                          </div>
+                          <p className="text-zinc-400 leading-relaxed">
+                            {log.action || log.description || 'Performed an action'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Load More Pagination Flow */}
+                    {pagination?.hasNextPage && (
+                      <div className="pt-4 text-center">
+                        <Button
+                          size="sm"
+                          disabled={activityLoading}
+                          onClick={() => {
+                            // Dispatch logic to increment page or fetch next page batch
+                            dispatch(handleLoadMore);
+                          }}
+                        >
+                          {activityLoading ? 'Loading...' : 'Load Older Activity'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

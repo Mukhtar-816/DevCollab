@@ -1,6 +1,7 @@
 const taskDal = require("../DAL/task.dal");
 const CustomError = require("../utils/CustomError");
 const commentDal = require("../DAL/comment.dal");
+const eventBus = require("../events/log.event");
 
 class commentService {
     constructor() { };
@@ -20,6 +21,14 @@ class commentService {
         });
 
         if (!comment) throw new CustomError(400, "Error Posting Comment");
+
+        eventBus.emit('activity:log', {
+            projectId,
+            actorId : authorId,
+            action : 'COMMENT_POSTED',
+            targetType: 'COMMENT',
+            targetId : comment?._id
+        });
 
         return comment;
     };
@@ -48,6 +57,14 @@ class commentService {
 
         if (!updatedComment) throw new CustomError(400, "Error Updating Comment");
 
+        eventBus.emit('activity:log', {
+            projectId : updatedComment?.projectId,
+            actorId : memberId,
+            action : 'COMMENT_UPDATED',
+            targetType : 'COMMENT',
+            targetId : updatedComment?._id
+        });
+
         return updatedComment;
     };
 
@@ -62,6 +79,14 @@ class commentService {
         if (comment?.authorId?.toString() != memberId) throw new CustomError(400, "Forbidden, You can't delete other's comment");
 
         await commentDal.deleteCommentById({ _id: commentId });
+
+        eventBus.emit('activity:log', {
+            projectId:comment?.projectId,
+            actorId : memberId,
+            action : 'COMMENT_DELETED',
+            targetType : 'COMMENT',
+            targetId : null
+        })
 
         return true;
     };

@@ -12,6 +12,7 @@ const taskRoutes = require("./Routes/task.routes.js");
 const commentRoutes = require("./Routes/comment.routes.js");
 const errorMiddleware = require("./middlewares/error.middleware.js");
 const cookieParser = require("cookie-parser");
+const registerActivityLogListener = require("./listeners/activityLog.listener.js");
 
 
 const CORSOPTIONS = {
@@ -23,6 +24,9 @@ const PORT = process.env.PORT || 3000;
 const DEV = process.env.NODE_ENV == "DEV";
 
 const app = express();
+
+//listener activity loggs
+registerActivityLogListener();
 
 app.use(express.json())
 app.use(express({ urlencoded: true }));

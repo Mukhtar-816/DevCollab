@@ -3,6 +3,7 @@ const projectMemberDal = require("../DAL/projectMember.dal");
 const userDal = require("../DAL/user.dal");
 const CustomError = require("../utils/CustomError");
 const reusable = require("../utils/reusable");
+const eventBus = require("../events/log.event");
 
 class invitationService {
     constructor() { };
@@ -58,6 +59,14 @@ class invitationService {
             userId : user._id,
             email : user.email,
             role : invitation.role || 'Guest'
+        });
+
+        eventBus.emit('activity:log', {
+            projectId:invitation.projectId,
+            actorId : user?._id,
+            action : 'INVITION_ACCEPTED',
+            targetType : 'INVITATION',
+            targetId : invitation._id
         });
 
         return true;

@@ -6,6 +6,7 @@ import projectMemberReducer from "./slices/memberSlice/member.slice";
 import invitationReducer from "./slices/invitationSlice/invitation.slice"
 import projectTaskReducer from "./slices/taskSlice/task.slice"
 import projectTaskCommentReducer from "./slices/commentSlice/comment.slice";
+import projectActivityLogReducer from "./slices/activityLogSlice/activityLog.slice";
 
 
 export const store = configureStore({
@@ -16,7 +17,8 @@ export const store = configureStore({
         projectMembers: projectMemberReducer,
         invitations: invitationReducer,
         projectTasks: projectTaskReducer,
-        projectTaskComments: projectTaskCommentReducer
+        projectTaskComments: projectTaskCommentReducer,
+        projectActivityLogs : projectActivityLogReducer
     },
 });
 
